@@ -1,0 +1,156 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows7.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Assets\Icons\Album.png" />
+    <None Remove="Assets\Icons\Album_32x.png" />
+    <None Remove="Assets\Icons\Arrow.png" />
+    <None Remove="Assets\Icons\ArrowBack.png" />
+    <None Remove="Assets\Icons\ArrowBack_32x.png" />
+    <None Remove="Assets\Icons\ArrowDown.png" />
+    <None Remove="Assets\Icons\ArrowDown_32x.png" />
+    <None Remove="Assets\Icons\ArrowForward.png" />
+    <None Remove="Assets\Icons\ArrowForward_32x.png" />
+    <None Remove="Assets\Icons\Artist.png" />
+    <None Remove="Assets\Icons\Artist_32x.png" />
+    <None Remove="Assets\Icons\Back.png" />
+    <None Remove="Assets\Icons\Back_32x.png" />
+    <None Remove="Assets\Icons\Checkmark.png" />
+    <None Remove="Assets\Icons\Cog.png" />
+    <None Remove="Assets\Icons\Cog_32x.png" />
+    <None Remove="Assets\Icons\Delete.png" />
+    <None Remove="Assets\Icons\Delete_32x.png" />
+    <None Remove="Assets\Icons\Edit.png" />
+    <None Remove="Assets\Icons\Edit_32x.png" />
+    <None Remove="Assets\Icons\Import.png" />
+    <None Remove="Assets\Icons\Import_32x.png" />
+    <None Remove="Assets\Icons\Loop.png" />
+    <None Remove="Assets\Icons\LoopAll.png" />
+    <None Remove="Assets\Icons\LoopAll_32x.png" />
+    <None Remove="Assets\Icons\LoopOne.png" />
+    <None Remove="Assets\Icons\LoopOne_32x.png" />
+    <None Remove="Assets\Icons\Loop_32x.png" />
+    <None Remove="Assets\Icons\Mix.png" />
+    <None Remove="Assets\Icons\MixAdd.png" />
+    <None Remove="Assets\Icons\MixAdd_32x.png" />
+    <None Remove="Assets\Icons\Mix_32x.png" />
+    <None Remove="Assets\Icons\MoveToAlbum.png" />
+    <None Remove="Assets\Icons\MoveToAlbum_32x.png" />
+    <None Remove="Assets\Icons\Pause.png" />
+    <None Remove="Assets\Icons\Pause_32x.png" />
+    <None Remove="Assets\Icons\PlaceholderCover.png" />
+    <None Remove="Assets\Icons\Play.png" />
+    <None Remove="Assets\Icons\Play_32x.png" />
+    <None Remove="Assets\Icons\Queue.png" />
+    <None Remove="Assets\Icons\QueueAdd.png" />
+    <None Remove="Assets\Icons\QueueAdd_32x.png" />
+    <None Remove="Assets\Icons\QueueClear.png" />
+    <None Remove="Assets\Icons\QueueClear_32x.png" />
+    <None Remove="Assets\Icons\QueueNext.png" />
+    <None Remove="Assets\Icons\QueueNext_32x.png" />
+    <None Remove="Assets\Icons\Queue_32x.png" />
+    <None Remove="Assets\Icons\Remove.png" />
+    <None Remove="Assets\Icons\Remove_32x.png" />
+    <None Remove="Assets\Icons\Reorder.png" />
+    <None Remove="Assets\Icons\Reorder_32x.png" />
+    <None Remove="Assets\Icons\Search.png" />
+    <None Remove="Assets\Icons\Search_32x.png" />
+    <None Remove="Assets\Icons\Shuffle.png" />
+    <None Remove="Assets\Icons\Shuffle_32x.png" />
+    <None Remove="Assets\Icons\Skip.png" />
+    <None Remove="Assets\Icons\Skip_32x.png" />
+    <None Remove="Assets\Icons\Song.png" />
+    <None Remove="Assets\Icons\Song_32x.png" />
+    <None Remove="Assets\Icons\Speaker.png" />
+    <None Remove="Assets\Icons\Speaker_32x.png" />
+    <None Remove="Assets\Icons\TestCover.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NAudio" Version="3.3.0" />
+    <PackageReference Include="NAudio.Vorbis" Version="3.0.0" />
+    <PackageReference Include="SQLite" Version="3.54.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\zPlayer.Core\zPlayer.Core.csproj">
+      <TreatAsUsed>true</TreatAsUsed>
+    </ProjectReference>
+    <ProjectReference Include="..\zPlayer.Infrastructure\zPlayer.Infrastructure.csproj">
+      <TreatAsUsed>true</TreatAsUsed>
+    </ProjectReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\Icons\Album.png" />
+    <Resource Include="Assets\Icons\Album_32x.png" />
+    <Resource Include="Assets\Icons\Arrow.png" />
+    <Resource Include="Assets\Icons\ArrowBack.png" />
+    <Resource Include="Assets\Icons\ArrowBack_32x.png" />
+    <Resource Include="Assets\Icons\ArrowDown.png" />
+    <Resource Include="Assets\Icons\ArrowDown_32x.png" />
+    <Resource Include="Assets\Icons\ArrowForward.png" />
+    <Resource Include="Assets\Icons\ArrowForward_32x.png" />
+    <Resource Include="Assets\Icons\Artist.png" />
+    <Resource Include="Assets\Icons\Artist_32x.png" />
+    <Resource Include="Assets\Icons\Back.png" />
+    <Resource Include="Assets\Icons\Back_32x.png" />
+    <Resource Include="Assets\Icons\Checkmark.png" />
+    <Resource Include="Assets\Icons\Cog.png" />
+    <Resource Include="Assets\Icons\Cog_32x.png" />
+    <Resource Include="Assets\Icons\Delete.png" />
+    <Resource Include="Assets\Icons\Delete_32x.png" />
+    <Resource Include="Assets\Icons\Edit.png" />
+    <Resource Include="Assets\Icons\Edit_32x.png" />
+    <Resource Include="Assets\Icons\Import.png" />
+    <Resource Include="Assets\Icons\Import_32x.png" />
+    <Resource Include="Assets\Icons\Loop.png" />
+    <Resource Include="Assets\Icons\LoopAll.png" />
+    <Resource Include="Assets\Icons\LoopAll_32x.png" />
+    <Resource Include="Assets\Icons\LoopOne.png" />
+    <Resource Include="Assets\Icons\LoopOne_32x.png" />
+    <Resource Include="Assets\Icons\Loop_32x.png" />
+    <Resource Include="Assets\Icons\Mix.png" />
+    <Resource Include="Assets\Icons\MixAdd.png" />
+    <Resource Include="Assets\Icons\MixAdd_32x.png" />
+    <Resource Include="Assets\Icons\Mix_32x.png" />
+    <Resource Include="Assets\Icons\MoveToAlbum.png" />
+    <Resource Include="Assets\Icons\MoveToAlbum_32x.png" />
+    <Resource Include="Assets\Icons\Pause.png" />
+    <Resource Include="Assets\Icons\Pause_32x.png" />
+    <Resource Include="Assets\Icons\PlaceholderCover.png" />
+    <Resource Include="Assets\Icons\Play.png" />
+    <Resource Include="Assets\Icons\Play_32x.png" />
+    <Resource Include="Assets\Icons\Queue.png" />
+    <Resource Include="Assets\Icons\QueueAdd.png" />
+    <Resource Include="Assets\Icons\QueueAdd_32x.png" />
+    <Resource Include="Assets\Icons\QueueClear.png" />
+    <Resource Include="Assets\Icons\QueueClear_32x.png" />
+    <Resource Include="Assets\Icons\QueueNext.png" />
+    <Resource Include="Assets\Icons\QueueNext_32x.png" />
+    <Resource Include="Assets\Icons\Queue_32x.png" />
+    <Resource Include="Assets\Icons\Remove.png" />
+    <Resource Include="Assets\Icons\Remove_32x.png" />
+    <Resource Include="Assets\Icons\Reorder.png" />
+    <Resource Include="Assets\Icons\Reorder_32x.png" />
+    <Resource Include="Assets\Icons\Search.png" />
+    <Resource Include="Assets\Icons\Search_32x.png" />
+    <Resource Include="Assets\Icons\Shuffle.png" />
+    <Resource Include="Assets\Icons\Shuffle_32x.png" />
+    <Resource Include="Assets\Icons\Skip.png" />
+    <Resource Include="Assets\Icons\Skip_32x.png" />
+    <Resource Include="Assets\Icons\Song.png" />
+    <Resource Include="Assets\Icons\Song_32x.png" />
+    <Resource Include="Assets\Icons\Speaker.png" />
+    <Resource Include="Assets\Icons\Speaker_32x.png" />
+    <Resource Include="Assets\Icons\TestCover.png" />
+  </ItemGroup>
+
+</Project>

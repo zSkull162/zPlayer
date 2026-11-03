@@ -1,0 +1,173 @@
+﻿<ResourceDictionary
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Style TargetType="Button" x:Key="RoundedButton">
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+        <Setter Property="BorderThickness" Value="2"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+        <Setter Property="Border.CornerRadius" Value="3"/>
+
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="ButtonBorder" 
+                            Background="{TemplateBinding Background}" 
+                            BorderBrush="{TemplateBinding BorderBrush}" 
+                            BorderThickness="{TemplateBinding BorderThickness}" 
+                            CornerRadius="{TemplateBinding Border.CornerRadius}" 
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="ButtonBorder" Property="BorderBrush" Value="{DynamicResource HighlightBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="ButtonBorder" Property="BorderBrush" Value="{DynamicResource SelectedBrush}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style BasedOn="{StaticResource RoundedButton}" TargetType="Button" x:Key="RoundedButtonLeft">
+        <Setter Property="Border.CornerRadius" Value="8,0,0,8"/>
+        <Setter Property="BorderThickness" Value="2,0,2,2"/>
+    </Style>
+
+    <Style BasedOn="{StaticResource RoundedButton}" TargetType="Button" x:Key="RoundedButtonMid">
+        <Setter Property="Border.CornerRadius" Value="0"/>
+        <Setter Property="BorderThickness" Value="0,2,0,2"/>
+    </Style>
+
+    <Style BasedOn="{StaticResource RoundedButton}" TargetType="Button" x:Key="RoundedButtonRight">
+        <Setter Property="Border.CornerRadius" Value="0,8,8,0"/>
+        <Setter Property="BorderThickness" Value="0,2,2,2"/>
+    </Style>
+
+    <Style TargetType="Button" x:Key="IconButton">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+        <Setter Property="RenderTransform">
+            <Setter.Value>
+                <ScaleTransform ScaleX="1" ScaleY="1"/>
+            </Setter.Value>
+        </Setter>
+
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Grid Background="Transparent">
+                        <Grid RenderTransformOrigin="0.5,0.5">
+                            <Grid.RenderTransform>
+                                <ScaleTransform x:Name="ButtonScale" ScaleX="1" ScaleY="1"/>
+                            </Grid.RenderTransform>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Grid>
+                    </Grid>
+
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard x:Name="HoverAnimation">
+                                    <Storyboard>
+                                        <DoubleAnimation
+                                        Storyboard.TargetName="ButtonScale"
+                                        Storyboard.TargetProperty="ScaleX"
+                                        To="1.15" Duration="0:0:0.12"/>
+                                        <DoubleAnimation
+                                        Storyboard.TargetName="ButtonScale"
+                                        Storyboard.TargetProperty="ScaleY"
+                                        To="1.15" Duration="0:0:0.12"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="HoverAnimation"/>
+                            </Trigger.ExitActions>
+                        </Trigger>
+
+                        <Trigger Property="IsPressed" Value="True">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard x:Name="PressAnimation">
+                                    <Storyboard>
+                                        <DoubleAnimation
+                                        Storyboard.TargetName="ButtonScale"
+                                        Storyboard.TargetProperty="ScaleX"
+                                        To="0.9" Duration="0:0:0.08"/>
+                                        <DoubleAnimation
+                                        Storyboard.TargetName="ButtonScale"
+                                        Storyboard.TargetProperty="ScaleY"
+                                        To="0.9" Duration="0:0:0.08"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="PressAnimation"/>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style BasedOn="{StaticResource IconButton}" TargetType="Button" x:Key="IconButtonSelected">
+        <Setter Property="Visibility" Value="Collapsed"/>
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=DataGridRow}}" Value="True">
+                <Setter Property="Visibility" Value="Visible"/>
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+    
+    <Style TargetType="Button" x:Key="ListRowButton">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="ButtonBorder" Background="{TemplateBinding Background}">
+                        <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                        VerticalAlignment="Center"/>
+                    </Border>
+
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="ButtonBorder" Property="Background"
+                                    Value="{DynamicResource BorderBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="ButtonBorder" Property="Background">
+                                <Setter.Value>
+                                    <LinearGradientBrush>
+                                        <GradientStop Color="{DynamicResource SelectedColorSecondary}" Offset="0"/>
+                                        <GradientStop Color="{DynamicResource SelectedColor}" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    
+    <Style TargetType="Image" x:Key="LoopIcon">
+        <Setter Property="Source" Value="/Assets/Icons/Loop_32x.png"/>
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding LoopMode}" Value="One">
+                <Setter Property="Source" Value="/Assets/Icons/LoopOne_32x.png"/>
+            </DataTrigger>
+            <DataTrigger Binding="{Binding LoopMode}" Value="All">
+                <Setter Property="Source" Value="/Assets/Icons/LoopAll_32x.png"/>
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+</ResourceDictionary>

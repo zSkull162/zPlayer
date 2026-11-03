@@ -1,0 +1,87 @@
+﻿<UserControl x:Class="zPlayer.App.Views.CreateAlbumView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:zPlayer.App.Views"
+             xmlns:converters="clr-namespace:zPlayer.App.Converters"
+             mc:Ignorable="d" 
+             d:DesignWidth="400">
+    <UserControl.Resources>
+        <converters:ArtworkConverter x:Key="ArtworkConverter"/>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="24"/>
+            <RowDefinition Height="320"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="Create Album" Style="{StaticResource WindowTitle}" HorizontalAlignment="Center"/>
+
+        <!--Artwork-->
+        <Border Grid.Row="1" Width="320" Height="320" CornerRadius="3">
+            <Border.Background>
+                <ImageBrush x:Name="ArtworkPreview" ImageSource="{Binding Artwork, Converter={StaticResource ArtworkConverter}}" Stretch="UniformToFill"/>
+            </Border.Background>
+        </Border>
+
+        <StackPanel Grid.Row="2" Margin="12,6">
+            <!--Art mode-->
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="0.5*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Artwork Mode" Style="{StaticResource FieldLabel}"/>
+
+                <Grid Grid.Column="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <ComboBox Name="ArtworkModeBox" SelectedIndex="0" Style="{StaticResource RoundedComboBox}"
+                            SelectionChanged="ArtworkModeBox_SelectionChanged" Height="30"  Margin="0,4">
+                        <ComboBoxItem Content="Automatic"/>
+                        <ComboBoxItem Content="Custom Image"/>
+                    </ComboBox>
+
+                    <Button x:Name="BrowseArtworkButton" Click="BrowseArtwork_Click" Grid.Column="1"
+                        Content="Browse..." Style="{StaticResource RoundedButton}"
+                        Height="30" Margin="4,4,0,4" Padding="12,0" Visibility="Collapsed"/>
+                </Grid>
+            </Grid>
+
+            <Separator Height="13" Background="{StaticResource BorderBrush}"/>
+            <!--Title-->
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="0.5*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Title" Style="{StaticResource FieldLabel}"/>
+
+                <TextBox x:Name="TitleTextBox" Text="{Binding Title, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     Style="{StaticResource RoundedTextBox}" Grid.Column="1" Height="30" Margin="0,4" Padding="2,0"/>
+            </Grid>
+
+            <!--Artist-->
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="0.5*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Artist" Style="{StaticResource FieldLabel}"/>
+
+                <TextBox x:Name="ArtistTextBox" Text="{Binding Artist, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     Style="{StaticResource RoundedTextBox}" Grid.Column="1" Height="30" Margin="0,4" Padding="2,0"/>
+            </Grid>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+                <Button Click="Cancel_Click" Content="Cancel" Style="{StaticResource RoundedButton}" Margin="4" Padding="12,4"/>
+                <Button Click="Create_Click" Content="Create Album" Style="{StaticResource RoundedButton}" Margin="4,4,0,4" Padding="12,4"/>
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</UserControl>

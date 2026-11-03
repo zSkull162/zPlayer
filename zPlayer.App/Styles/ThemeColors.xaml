@@ -1,0 +1,19 @@
+﻿<ResourceDictionary
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Color x:Key="BackgroundColor">#1C1D29</Color>
+    <Color x:Key="SurfaceColor">#232431</Color>
+    <Color x:Key="BorderColor">#2B2C3B</Color>
+    <Color x:Key="HighlightColor">#3B3C4C</Color>
+    <Color x:Key="SelectedColor">#2680D9</Color>
+    <Color x:Key="SelectedColorSecondary">#27c0d9</Color>
+    <Color x:Key="TextColor">#F2F2F2</Color>
+
+    <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}"/>
+    <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource SurfaceColor}"/>
+    <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}"/>
+    <SolidColorBrush x:Key="HighlightBrush" Color="{StaticResource HighlightColor}"/>
+    <SolidColorBrush x:Key="SelectedBrush" Color="{StaticResource SelectedColor}"/>
+    <SolidColorBrush x:Key="TextBrush" Color="{StaticResource TextColor}"/>
+</ResourceDictionary>

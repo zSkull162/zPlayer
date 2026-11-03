@@ -1,0 +1,48 @@
+##=========================================
+## User-specific files & IDE configuration
+##=========================================
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+.vs/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln.iml
+
+##=========================================
+## Build results & Artifacts
+##=========================================
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Bb]in/
+[Oo]bj/
+bld/
+
+##=========================================
+## WPF Specific Temporary Files
+##=========================================
+# WPF creates temporary project files during the XAML compilation process
+*_wpftmp.csproj
+*_wpftmp.vbproj
+
+##=========================================
+## Package & Dependency Managers
+##=========================================
+packages/
+!packages/build/
+node_modules/
+
+##=========================================
+## OS-specific files
+##=========================================
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
