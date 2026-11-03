@@ -24,11 +24,24 @@ namespace zPlayer.App.Views
         }
 
         public void RefreshAlbums() {
+            string search = AlbumSearchBox.Text.Trim();
+            static bool Contains(string originalString, string term) {
+                return originalString.Contains(term, StringComparison.OrdinalIgnoreCase);
+            }
+
             List<object> items = [new CreateAlbumTile()];
-            items.AddRange(library.GetAlbums());
+            items.AddRange(library.GetAlbums().Where(album =>
+                string.IsNullOrWhiteSpace(search) ||
+                Contains(album.Title, search) || Contains(album.Artist, search))
+            );
 
             AlbumsGrid.ItemsSource = items;
             AlbumsInLibraryText.Text = $"— {library.Albums.Count} in library";
+        }
+
+        private void AlbumSearchBox_TextChanged(object sender, TextChangedEventArgs e) {
+            if (!IsInitialized) return;
+            RefreshAlbums();
         }
 
         private void CreateAlbum_Click(object sender, RoutedEventArgs e) {

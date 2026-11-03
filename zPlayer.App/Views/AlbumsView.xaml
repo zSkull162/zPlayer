@@ -62,7 +62,8 @@
                         Style="{StaticResource WindowTitle}" FontWeight="Normal" Opacity="0.5"/>
                 </StackPanel>
 
-                <TextBox Style="{StaticResource SearchBox}" Tag="Search Albums..." FontSize="12"
+                <TextBox x:Name="AlbumSearchBox" TextChanged="AlbumSearchBox_TextChanged"
+                        Style="{StaticResource SearchBox}" Tag="Search Albums..." FontSize="12"
                         Grid.Column="2" Width="180" HorizontalAlignment="Right"/>
             </Grid>
         </Border>
