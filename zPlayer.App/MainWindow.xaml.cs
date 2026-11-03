@@ -459,7 +459,6 @@ namespace zPlayer.App
             detailsView.AddToQueueRequested += player.AddToQueue;
             detailsView.InsertNextRequested += player.InsertNext;
             detailsView.EditAlbumRequested += ShowEditAlbum;
-            detailsView.EditSongRequested += ShowEditSong;
             detailsView.SongOrderRequested += SaveAlbumSongOrder;
 
             MainContent.Content = detailsView;

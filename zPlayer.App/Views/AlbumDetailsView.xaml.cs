@@ -31,7 +31,6 @@ namespace zPlayer.App.Views
         public event Action<Song[]>? InsertNextRequested;
         public event Action? BackRequested;
         public event Action<Album>? EditAlbumRequested;
-        public event Action<Song>? EditSongRequested;
 
         public AlbumDetailsView(Album album, SongCommands songCommands) {
             Commands = songCommands;

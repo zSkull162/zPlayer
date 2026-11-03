@@ -145,6 +145,7 @@
                 Style="{StaticResource SongsGrid}"
                 RowStyle="{StaticResource SongGridRow}"
                 CellStyle="{StaticResource SongGridCell}"
+                Tag="{Binding Commands, RelativeSource={RelativeSource AncestorType={x:Type local:AlbumDetailsView}}}"
                 PreviewMouseLeftButtonDown="AlbumSongsGrid_LeftMouseDown"
                 PreviewMouseRightButtonDown="AlbumSongsGrid_RightMouseDown"
                 ContextMenuOpening="AlbumSongsGrid_ContextMenuOpening"
