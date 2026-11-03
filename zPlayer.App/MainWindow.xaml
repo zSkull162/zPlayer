@@ -76,22 +76,22 @@
                 <!--Library-->
                 <Label Content="Library" Style="{StaticResource MiniTitle}"/>
                 <ListBox x:Name="LibraryNavigation" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-             BorderThickness="0" Background="Transparent"
-             ItemContainerStyle="{StaticResource SidebarItem}"
-             SelectionChanged="LibraryNavigation_SelectionChanged"
-             SelectedIndex="0">
+                             BorderThickness="0" Background="Transparent"
+                             ItemContainerStyle="{StaticResource SidebarItem}"
+                             SelectionChanged="LibraryNavigation_SelectionChanged"
+                             SelectedIndex="0">
                     <ListBoxItem Tag="Songs">
                         <StackPanel Orientation="Horizontal">
                             <Image Source="/Assets/Icons/Song_32x.png" Style="{StaticResource ItemIcon}"/>
                             <TextBlock Text="Songs" Style="{StaticResource ItemLabel}"/>
                         </StackPanel>
-                    </ListBoxItem>
+                    </ListBoxItem> <!--
                     <ListBoxItem Tag="Artists">
                         <StackPanel Orientation="Horizontal">
                             <Image Source="/Assets/Icons/Artist_32x.png" Style="{StaticResource ItemIcon}"/>
                             <TextBlock Text="Artists" Style="{StaticResource ItemLabel}"/>
                         </StackPanel>
-                    </ListBoxItem>
+                    </ListBoxItem> -->
                     <ListBoxItem Tag="Albums">
                         <StackPanel Orientation="Horizontal">
                             <Image Source="/Assets/Icons/Album_32x.png" Style="{StaticResource ItemIcon}"/>
