@@ -96,45 +96,49 @@
             
             <!--Songs data grid-->
             <DataGrid x:Name="SongsGrid" Grid.Row="2" ItemsSource="{Binding Songs}"
+                      Tag="{Binding Commands, RelativeSource={RelativeSource AncestorType={x:Type local:SongsView}}}"
                       PreviewMouseLeftButtonDown="SongsGrid_LeftMouseDown"
+                      PreviewMouseRightButtonDown="SongsGrid_RightMouseDown"
+                      ContextMenuOpening="SongsGrid_ContextMenuOpening"
                       Style="{StaticResource SongsGrid}"
                       RowStyle="{StaticResource SongGridRow}"
                       CellStyle="{StaticResource SongGridCell}">
                 <DataGrid.ContextMenu>
-                    <ContextMenu Style="{StaticResource RoundedContextMenu}">
-                        <MenuItem Header="Play" Click="PlaySong_Click">
+                    <ContextMenu Style="{StaticResource RoundedContextMenu}"
+                                 DataContext="{Binding PlacementTarget, RelativeSource={RelativeSource Self}}">
+                        <MenuItem Header="Play" Command="{Binding Tag.PlaySongCommand}" CommandParameter="{Binding SelectedItem}">
                             <MenuItem.Icon>
                                 <Image Source="/Assets/Icons/Play_32x.png"/>
                             </MenuItem.Icon>
                         </MenuItem>
-                        <MenuItem Header="Play Next" Click="PlaySongNext_Click">
+                        <MenuItem Header="Play Next" Command="{Binding Tag.PlaySongNextCommand}" CommandParameter="{Binding SelectedItem}">
                             <MenuItem.Icon>
                                 <Image Source="/Assets/Icons/QueueNext_32x.png"/>
                             </MenuItem.Icon>
                         </MenuItem>
-                        <MenuItem Header="Add to Queue" Click="AddSongToQueue_Click">
+                        <MenuItem Header="Add to Queue" Command="{Binding Tag.AddSongToQueueCommand}" CommandParameter="{Binding SelectedItem}">
                             <MenuItem.Icon>
                                 <Image Source="/Assets/Icons/QueueAdd_32x.png"/>
                             </MenuItem.Icon>
                         </MenuItem>
                         <Separator Style="{StaticResource RoundedSeparator}"/>
-                        <MenuItem Header="Edit Info" Click="EditSong_Click">
+                        <MenuItem Header="Edit Info" Command="{Binding Tag.EditSongCommand}" CommandParameter="{Binding SelectedItem}">
                             <MenuItem.Icon>
                                 <Image Source="/Assets/Icons/Edit_32x.png"/>
                             </MenuItem.Icon>
                         </MenuItem>
-                        <MenuItem Header="Delete" Click="DeleteSong_Click">
+                        <MenuItem Header="Delete" Command="{Binding Tag.DeleteSongCommand}" CommandParameter="{Binding SelectedItem}">
                             <MenuItem.Icon>
                                 <Image Source="/Assets/Icons/Remove_32x.png"/>
                             </MenuItem.Icon>
                         </MenuItem>
                         <Separator Style="{StaticResource RoundedSeparator}"/>
-                        <MenuItem Header="Move to Album" Click="MoveSongToAlbum_Click">
+                        <MenuItem Header="Move to Album">
                             <MenuItem.Icon>
                                 <Image Source="/Assets/Icons/MoveToAlbum_32x.png"/>
                             </MenuItem.Icon>
                         </MenuItem>
-                        <MenuItem Header="Add to Mix" Click="AddSongToMix_Click">
+                        <MenuItem Header="Add to Mix">
                             <MenuItem.Icon>
                                 <Image Source="/Assets/Icons/MixAdd_32x.png"/>
                             </MenuItem.Icon>

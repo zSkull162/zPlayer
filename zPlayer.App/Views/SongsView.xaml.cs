@@ -4,16 +4,19 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
 using zPlayer.Core;
+using System.Windows.Input;
+using zPlayer.App.Commands;
 
 namespace zPlayer.App.Views
 {
     public partial class SongsView : UserControl
     {
         public event Action? ImportSongsRequested;
-        public event Action<Song>? EditSongRequested;
+        public SongCommands Commands { get; }
         private ICollectionView? songsView;
 
-        public SongsView(MusicLibrary library) {
+        public SongsView(MusicLibrary library, SongCommands commands) {
+            Commands = commands;
             InitializeComponent();
             DataContext = library;
 
@@ -51,35 +54,19 @@ namespace zPlayer.App.Views
             SongsGrid.UnselectAll();
         }
 
-        #region Context menu methods
-        private void PlaySong_Click(object sender, RoutedEventArgs e) {
-            
+        private void SongsGrid_RightMouseDown(object sender, MouseButtonEventArgs e) {
+            if (e.OriginalSource is DependencyObject source &&
+                ItemsControl.ContainerFromElement(SongsGrid, source) is DataGridRow { Item: Song song }) {
+                SongsGrid.SelectedItem = song;
+            }
+            else {
+                SongsGrid.UnselectAll();
+            }
         }
 
-        private void PlaySongNext_Click(object sender, RoutedEventArgs e) {
-            return;
+        private void SongsGrid_ContextMenuOpening(object sender, ContextMenuEventArgs e) {
+            if (SongsGrid.SelectedItem is not Song) e.Handled = true;
+            CommandManager.InvalidateRequerySuggested();
         }
-
-        private void AddSongToQueue_Click(object sender, RoutedEventArgs e) {
-            return;
-        }
-
-        private void EditSong_Click(object sender, RoutedEventArgs e) {
-            if (SongsGrid.SelectedItem is not Song song) return;
-            EditSongRequested?.Invoke(song);
-        }
-
-        private void DeleteSong_Click(object sender, RoutedEventArgs e) {
-            return;
-        }
-
-        private void MoveSongToAlbum_Click(object sender, RoutedEventArgs e) {
-            return;
-        }
-
-        private void AddSongToMix_Click(object sender, RoutedEventArgs e) {
-            return;
-        }
-        #endregion
     }
 }

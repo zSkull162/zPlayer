@@ -1,7 +1,6 @@
 ﻿using Microsoft.Win32;
 using System.Globalization;
 using System.IO;
-using System.Runtime.Intrinsics.Arm;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -15,6 +14,7 @@ using zPlayer.App.Converters;
 using zPlayer.App.Playback;
 using zPlayer.App.Views;
 using zPlayer.Core;
+using zPlayer.App.Commands;
 using zPlayer.Infrastructure;
 using zPlayer.Infrastructure.Storage;
 
@@ -28,6 +28,7 @@ namespace zPlayer.App
         private readonly ArtworkConverter converter = new();
         private readonly MusicLibrary library = new();
         private readonly MediaKeyListener? mediaKeys;
+        private readonly SongCommands songCommands;
 
         private readonly DispatcherTimer volumeCloseTimer = new() {
             Interval = TimeSpan.FromMilliseconds(125)
@@ -46,6 +47,8 @@ namespace zPlayer.App
         private const double QueueExpandedWidth = 320;
 
         public MainWindow() {
+            songCommands = new(player, ShowEditSong, DeleteSong);
+
             InitializeComponent();
             InitDatabase();
             mediaKeys = new();
@@ -194,6 +197,7 @@ namespace zPlayer.App
         }
         #endregion
 
+        #region Volume slider
         private void VolumeSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e) {
             player.Volume = e.NewValue;
         }
@@ -210,6 +214,7 @@ namespace zPlayer.App
                 MessageBox.Show(this, $"Could not save the volume setting:\n{ex.Message}", "Settings Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+        #endregion
 
         #region Volume Popup
         private void ShowVolumePopup() {
@@ -250,9 +255,8 @@ namespace zPlayer.App
         private void NavigateToPage(string tag) {
             switch (tag) {
                 default:
-                    SongsView songView = new SongsView(library);
+                    SongsView songView = new SongsView(library, songCommands);
                     songView.ImportSongsRequested += ImportSongs;
-                    songView.EditSongRequested += ShowEditSong;
                     MainContent.Content = songView;
                     break;
                 case "Albums":
@@ -408,17 +412,7 @@ namespace zPlayer.App
             };
             OpenPopup(view);
         }
-
-        private void RefreshAfterSongEdit() {
-            if (MainContent.Content is AlbumDetailsView details) {
-                details.RefreshView();
-            }
-            else if (MainContent.Content is AlbumsView) {
-                NavigateToPage("Albums");
-            }
-            CollectionViewSource.GetDefaultView(library.Songs).Refresh();
-            UpdatePlaybackUI();
-        }
+        #endregion
 
         private void OpenAlbumDetails(Album album) {
             AlbumDetailsView detailsView = new(library, album);
@@ -432,6 +426,23 @@ namespace zPlayer.App
             detailsView.SongOrderRequested += SaveAlbumSongOrder;
 
             MainContent.Content = detailsView;
+        }
+
+        private void DeleteSong(Song song) {
+            if (MessageBox.Show(this, $"Remove \"{song.Title}\" from your library?", "Delete Song", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
+            try {
+                database.DeleteSong(song.Id);
+            }
+            catch (Exception ex) {
+                MessageBox.Show(this, $"Could not delete the song:\n{ex.Message}", "Delete Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+            library.RemoveSong(song.Id);
+
+            int queueIndex = player.GetQueueSongs().FindIndex(existing => existing.Id == song.Id);
+            if (queueIndex >= 0) player.RemoveQueueIndex(queueIndex);
+
+            RefreshAfterSongEdit();
         }
 
         private void SaveAlbumSongOrder(Album album, IReadOnlyList<Song> reordered) {
@@ -450,7 +461,17 @@ namespace zPlayer.App
             }
             if (MainContent.Content is AlbumDetailsView detailsView) detailsView.RefreshView();
         }
-        #endregion
+
+        private void RefreshAfterSongEdit() {
+            if (MainContent.Content is AlbumDetailsView details) {
+                details.RefreshView();
+            }
+            else if (MainContent.Content is AlbumsView) {
+                NavigateToPage("Albums");
+            }
+            CollectionViewSource.GetDefaultView(library.Songs).Refresh();
+            UpdatePlaybackUI();
+        }
 
         #region Popup methods
         private void OpenPopup(UserControl content) {
