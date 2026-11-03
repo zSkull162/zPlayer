@@ -2,6 +2,7 @@
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using zPlayer.App.Commands;
 using zPlayer.Core;
 
 namespace zPlayer.App.Views
@@ -22,8 +23,8 @@ namespace zPlayer.App.Views
         private Song? pendingDragSong;
         public event Action<Album, IReadOnlyList<Song>>? SongOrderRequested;
 
-        private readonly MusicLibrary library;
         private readonly Album album;
+        public SongCommands Commands { get; }
 
         public event Action<Song[]>? PlayRequested;
         public event Action<Song[]>? AddToQueueRequested;
@@ -32,11 +33,13 @@ namespace zPlayer.App.Views
         public event Action<Album>? EditAlbumRequested;
         public event Action<Song>? EditSongRequested;
 
-        public AlbumDetailsView(MusicLibrary library, Album album) {
+        public AlbumDetailsView(Album album, SongCommands songCommands) {
+            Commands = songCommands;
             InitializeComponent();
-            this.library = library;
+
             this.album = album;
             DataContext = album;
+
             AlbumTitleText.Text = $"— {album.Title}";
             UpdateAlbumInfoText();
         }
@@ -79,18 +82,29 @@ namespace zPlayer.App.Views
             EditAlbumRequested?.Invoke(album);
         }
 
-        #region Context menu methods
-        private void EditSong_Click(object sender, RoutedEventArgs e) {
-            if (AlbumSongsGrid.SelectedItem is not Song song) return;
-            EditSongRequested?.Invoke(song);
+        #region AlbumSongsGrid event handlers
+        private void AlbumSongsGrid_LeftMouseDown(object sender, RoutedEventArgs e) {
+            DependencyObject? element = e.OriginalSource as DependencyObject;
+            while (element != null) {
+                if (element is DataGridRow) return;
+                element = VisualTreeHelper.GetParent(element);
+            }
+            AlbumSongsGrid.UnselectAll();
         }
 
-        private void MoveSongToAlbum_Click(object sender, RoutedEventArgs e) {
-            return;
+        private void AlbumSongsGrid_RightMouseDown(object sender, MouseButtonEventArgs e) {
+            if (e.OriginalSource is DependencyObject source &&
+                ItemsControl.ContainerFromElement(AlbumSongsGrid, source) is DataGridRow { Item: Song song }) {
+                AlbumSongsGrid.SelectedItem = song;
+            }
+            else {
+                AlbumSongsGrid.UnselectAll();
+            }
         }
 
-        private void AddSongToMix_Click(object sender, RoutedEventArgs e) {
-            return;
+        private void AlbumSongsGrid_ContextMenuOpening(object sender, ContextMenuEventArgs e) {
+            if (AlbumSongsGrid.SelectedItem is not Song) e.Handled = true;
+            CommandManager.InvalidateRequerySuggested();
         }
         #endregion
 
@@ -165,15 +179,6 @@ namespace zPlayer.App.Views
             e.Effects = DragDropEffects.Move;
         }
         #endregion
-
-        private void AlbumSongsGrid_LeftMouseDown(object sender, RoutedEventArgs e) {
-            DependencyObject? element = e.OriginalSource as DependencyObject;
-            while (element != null) {
-                if (element is DataGridRow) return;
-                element = VisualTreeHelper.GetParent(element);
-            }
-            AlbumSongsGrid.UnselectAll();
-        }
 
         private void AlbumIndex_Loaded(object sender, RoutedEventArgs e) {
             if (sender is not TextBlock textBlock) return;

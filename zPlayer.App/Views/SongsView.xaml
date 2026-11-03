@@ -133,7 +133,7 @@
                             </MenuItem.Icon>
                         </MenuItem>
                         <Separator Style="{StaticResource RoundedSeparator}"/>
-                        <MenuItem Header="Move to Album">
+                        <MenuItem Header="Move to Album" Command="{Binding Tag.MoveSongToAlbumCommand}" CommandParameter="{Binding SelectedItem}">
                             <MenuItem.Icon>
                                 <Image Source="/Assets/Icons/MoveToAlbum_32x.png"/>
                             </MenuItem.Icon>

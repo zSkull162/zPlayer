@@ -88,8 +88,8 @@
                             <Setter TargetName="ItemBorder" Property="BorderBrush">
                                 <Setter.Value>
                                     <LinearGradientBrush>
-                                        <GradientStop Color="{DynamicResource SelectedColorSecondary}" Offset="0"/>
-                                        <GradientStop Color="{DynamicResource SelectedColor}" Offset="1"/>
+                                        <GradientStop Color="{DynamicResource SelectedColor}" Offset="0"/>
+                                        <GradientStop Color="{DynamicResource SelectedColorSecondary}" Offset="1"/>
                                     </LinearGradientBrush>
                                 </Setter.Value>
                             </Setter>

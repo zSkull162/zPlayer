@@ -45,6 +45,7 @@ namespace zPlayer.App.Views
             ImportSongsRequested?.Invoke();
         }
 
+        #region SongsGrid event handlers
         private void SongsGrid_LeftMouseDown(object sender, RoutedEventArgs e) {
             DependencyObject? element = e.OriginalSource as DependencyObject;
             while (element != null) {
@@ -68,5 +69,6 @@ namespace zPlayer.App.Views
             if (SongsGrid.SelectedItem is not Song) e.Handled = true;
             CommandManager.InvalidateRequerySuggested();
         }
+        #endregion
     }
 }

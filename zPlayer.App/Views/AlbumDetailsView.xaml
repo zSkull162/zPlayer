@@ -146,24 +146,27 @@
                 RowStyle="{StaticResource SongGridRow}"
                 CellStyle="{StaticResource SongGridCell}"
                 PreviewMouseLeftButtonDown="AlbumSongsGrid_LeftMouseDown"
+                PreviewMouseRightButtonDown="AlbumSongsGrid_RightMouseDown"
+                ContextMenuOpening="AlbumSongsGrid_ContextMenuOpening"
                 PreviewMouseMove="AlbumSongsGrid_PreviewMouseMove"
                 PreviewDragOver="AlbumSongsGrid_DragOver"
                 PreviewDrop="AlbumSongsGrid_Drop"
                 CanUserSortColumns="False" AllowDrop="True">
             <DataGrid.ContextMenu>
-                <ContextMenu Style="{StaticResource RoundedContextMenu}">
-                    <MenuItem Header="Edit Info" Click="EditSong_Click">
+                <ContextMenu Style="{StaticResource RoundedContextMenu}"
+                             DataContext="{Binding PlacementTarget, RelativeSource={RelativeSource Self}}">
+                    <MenuItem Header="Edit Info" Command="{Binding Tag.EditSongCommand}" CommandParameter="{Binding SelectedItem}">
                         <MenuItem.Icon>
                             <Image Source="/Assets/Icons/Edit_32x.png"/>
                         </MenuItem.Icon>
                     </MenuItem>
                     <Separator Style="{StaticResource RoundedSeparator}"/>
-                    <MenuItem Header="Move to another Album" Click="MoveSongToAlbum_Click">
+                    <MenuItem Header="Move to another Album" Command="{Binding Tag.MoveSongToAlbumCommand}" CommandParameter="{Binding SelectedItem}">
                         <MenuItem.Icon>
                             <Image Source="/Assets/Icons/MoveToAlbum_32x.png"/>
                         </MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem Header="Add to Mix" Click="AddSongToMix_Click">
+                    <MenuItem Header="Add to Mix">
                         <MenuItem.Icon>
                             <Image Source="/Assets/Icons/MixAdd_32x.png"/>
                         </MenuItem.Icon>

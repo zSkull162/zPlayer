@@ -47,7 +47,7 @@ namespace zPlayer.App
         private const double QueueExpandedWidth = 320;
 
         public MainWindow() {
-            songCommands = new(player, ShowEditSong, DeleteSong);
+            songCommands = new(player, ShowEditSong, DeleteSong, ShowMoveToAlbum);
 
             InitializeComponent();
             InitDatabase();
@@ -412,10 +412,47 @@ namespace zPlayer.App
             };
             OpenPopup(view);
         }
+
+        private void ShowMoveToAlbum(Song song) {
+            MoveToAlbumView view = new(library, song);
+
+            view.CloseRequested += ClosePopup;
+            view.MoveRequested += selectedAlbum => {
+                Album? destination = library.GetAlbum(selectedAlbum.Id);
+                if (destination == null || !library.Songs.Any(existing => existing.Id == song.Id)) {
+                    MessageBox.Show(this, "The song or destination album is no longer in the library.", "Move Song", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+                if (destination.Id == song.AlbumId) return;
+
+                Song updated = song.Clone();
+                updated.AlbumId = destination.Id;
+                updated.AlbumTitle = destination.Title;
+                updated.AlbumArtist = destination.Artist;
+                updated.AlbumPosIndex = destination.Songs.Select(existing => existing.AlbumPosIndex).DefaultIfEmpty(-1).Max() + 1;
+
+                try {
+                    database.SaveSong(updated);
+                }
+                catch (Exception ex) {
+                    MessageBox.Show(this, $"Could not move the song:\n{ex.Message}", "Move Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+                foreach (Album album in library.Albums) {
+                    album.Songs.RemoveAll(existing => existing.Id == song.Id);
+                }
+                song.ApplyEdits(updated);
+                destination.Songs.Add(song);
+
+                RefreshAfterSongEdit();
+                ClosePopup();
+            };
+            OpenPopup(view);
+        }
         #endregion
 
         private void OpenAlbumDetails(Album album) {
-            AlbumDetailsView detailsView = new(library, album);
+            AlbumDetailsView detailsView = new(album, songCommands);
 
             detailsView.BackRequested += () => NavigateToPage("Albums");
             detailsView.PlayRequested += songs => player.PlayQueue(songs);
