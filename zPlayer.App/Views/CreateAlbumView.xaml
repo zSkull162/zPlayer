@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:zPlayer.App.Views"
              xmlns:converters="clr-namespace:zPlayer.App.Converters"
              mc:Ignorable="d" 
-             d:DesignWidth="400">
+             Width="400">
     <UserControl.Resources>
         <converters:ArtworkConverter x:Key="ArtworkConverter"/>
     </UserControl.Resources>

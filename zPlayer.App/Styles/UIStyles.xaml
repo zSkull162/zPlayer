@@ -28,7 +28,8 @@
 
     <Style x:Key="RoundedComboBoxItem" TargetType="ComboBoxItem">
         <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
-        <Setter Property="Padding" Value="8,2"/>
+        <Setter Property="Padding" Value="8,6"/>
+        <Setter Property="Margin" Value="0.2"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ComboBoxItem">

@@ -53,7 +53,7 @@ namespace zPlayer.App.Views
 
         #region Context menu methods
         private void PlaySong_Click(object sender, RoutedEventArgs e) {
-            return;
+            
         }
 
         private void PlaySongNext_Click(object sender, RoutedEventArgs e) {
