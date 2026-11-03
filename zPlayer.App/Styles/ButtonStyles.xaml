@@ -140,11 +140,11 @@
 
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="ButtonBorder" Property="Background"
+                            <Setter TargetName="ButtonBorder" Property="BorderBrush"
                                     Value="{DynamicResource BorderBrush}"/>
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="ButtonBorder" Property="Background">
+                            <Setter TargetName="ButtonBorder" Property="BorderBrush">
                                 <Setter.Value>
                                     <LinearGradientBrush>
                                         <GradientStop Color="{DynamicResource SelectedColorSecondary}" Offset="0"/>

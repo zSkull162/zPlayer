@@ -77,7 +77,7 @@
         <Border Grid.Row="1" Style="{StaticResource Panel}" CornerRadius="3" Margin="2">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="160"/>
+                    <ColumnDefinition Width="150"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="36"/>
                 </Grid.ColumnDefinitions>
@@ -88,8 +88,10 @@
                     <RowDefinition Height="40"/> <!--Actions-->
                 </Grid.RowDefinitions>
 
-                <Border CornerRadius="3" ClipToBounds="True" Grid.Column="0" Grid.RowSpan="4">
-                    <Image Source="{Binding Artwork, Converter={StaticResource ArtworkConverter}}" Stretch="UniformToFill"/>
+                <Border CornerRadius="3" Grid.Column="0" Grid.RowSpan="4">
+                    <Border.Background>
+                        <ImageBrush ImageSource="{Binding Artwork, Converter={StaticResource ArtworkConverter}}" Stretch="UniformToFill"/>
+                    </Border.Background>
                 </Border>
 
                 <TextBlock Text="{Binding Title}" Style="{StaticResource AlbumTitle}" Grid.Column="1"/>

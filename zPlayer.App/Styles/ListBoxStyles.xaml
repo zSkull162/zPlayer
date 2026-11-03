@@ -75,7 +75,8 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ListBoxItem">
-                    <Border x:Name="ItemBorder" Background="Transparent" CornerRadius="3">
+                    <Border x:Name="ItemBorder" Background="Transparent"
+                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="3">
                         <ContentPresenter/>
                     </Border>
 

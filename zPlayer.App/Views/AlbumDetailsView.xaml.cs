@@ -30,6 +30,7 @@ namespace zPlayer.App.Views
         public event Action<Song[]>? InsertNextRequested;
         public event Action? BackRequested;
         public event Action<Album>? EditAlbumRequested;
+        public event Action<Song>? EditSongRequested;
 
         public AlbumDetailsView(MusicLibrary library, Album album) {
             InitializeComponent();
@@ -80,7 +81,8 @@ namespace zPlayer.App.Views
 
         #region Context menu methods
         private void EditSong_Click(object sender, RoutedEventArgs e) {
-            return;
+            if (AlbumSongsGrid.SelectedItem is not Song song) return;
+            EditSongRequested?.Invoke(song);
         }
 
         private void MoveSongToAlbum_Click(object sender, RoutedEventArgs e) {
