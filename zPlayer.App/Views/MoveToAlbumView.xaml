@@ -1,0 +1,68 @@
+﻿<UserControl x:Class="zPlayer.App.Views.MoveToAlbumView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:zPlayer.App.Views"
+             xmlns:converters="clr-namespace:zPlayer.App.Converters"
+             mc:Ignorable="d"
+             Height="250" Width="300">
+    <UserControl.Resources>
+        <converters:ArtworkConverter x:Key="ArtworkConverter"/>
+    </UserControl.Resources>
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="8"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="Move Song to Album" Style="{StaticResource WindowTitle}"
+                   HorizontalAlignment="Center" Margin="0,0,0,4"/>
+        <TextBlock Text="LongSongName" FontSize="18" Foreground="{StaticResource TextBrush}"
+                   Grid.Row="1" HorizontalAlignment="Center" Margin="0,0,0,4"/>
+
+        <Grid x:Name="FromGrid" Opacity="0.5" Margin="6" Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="{Binding ActualHeight, ElementName=FromGrid}"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Border CornerRadius="3">
+                <Border.Background >
+                    <ImageBrush ImageSource="/Assets/Icons/TestCover.png" Stretch="UniformToFill"/>
+                </Border.Background>
+            </Border>
+
+            <StackPanel Margin="8,0,0,2" Grid.Column="1">
+                <TextBlock Text="From" FontSize="16" FontStyle="Italic" Foreground="{StaticResource TextBrush}"/>
+                <TextBox IsEnabled="False" Style="{StaticResource RoundedTextBox}" Text="PrevAlbumName"
+                         Height="30" Margin="0,4" Padding="2,0"/>
+            </StackPanel>
+        </Grid>
+        
+        <Separator Grid.Row="3" Margin="12,0" Style="{StaticResource RoundedSeparator}"/>
+        
+        <Grid x:Name="ToGrid" Margin="6" Grid.Row="4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="{Binding ActualHeight, ElementName=FromGrid}"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Border CornerRadius="3">
+                <Border.Background >
+                    <ImageBrush ImageSource="/Assets/Icons/TestCover.png" Stretch="UniformToFill"/>
+                </Border.Background>
+            </Border>
+
+            <StackPanel Margin="8,0,0,2" Grid.Column="1">
+                <TextBlock Text="To" FontSize="16" Foreground="{StaticResource TextBrush}"/>
+                <ComboBox x:Name="AlbumBox" DisplayMemberPath="Title" SelectionChanged="AlbumBox_SelectionChanged"
+                        Style="{StaticResource RoundedComboBox}" Grid.Column="1" Height="30"  Margin="0,4"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>
