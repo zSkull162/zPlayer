@@ -48,7 +48,7 @@
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Grid.Column="3">
-                    <ComboBox Name="SortTypeBox"
+                    <ComboBox Name="SortTypeBox" SelectionChanged="SortBox_SelectionChanged"
                               SelectedIndex="0" Style="{StaticResource HeaderComboBox}"
                               MinWidth="75" Margin="0,0,12,0">
                         <ComboBoxItem Content="Title"/>
@@ -56,7 +56,7 @@
                         <ComboBoxItem Content="Album"/>
                         <ComboBoxItem Content="Length"/> <!--Change SortOrderBox to "High-Low" and "Low-High" if this is selected-->
                     </ComboBox>
-                    <ComboBox x:Name="SortOrderBox"
+                    <ComboBox x:Name="SortOrderBox" SelectionChanged="SortBox_SelectionChanged"
                               SelectedIndex="0" Style="{StaticResource HeaderComboBox}"
                               MinWidth="75" Margin="0,0,12,0">
                         <ComboBoxItem Content="A-Z"/>

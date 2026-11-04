@@ -1,4 +1,5 @@
 ﻿<Window x:Class="zPlayer.App.MainWindow"
+        Icon="/Assets/Icons/zPlayer.ico"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -255,8 +256,8 @@
                            PlacementTarget="{Binding ElementName=VolumeButton}" Placement="Right"
                            MouseEnter="Volume_MouseEnter" MouseLeave="Volume_MouseLeave"
                            HorizontalOffset="12" StaysOpen="True" AllowsTransparency="True">
-                        <Border Style="{StaticResource Panel}" BorderThickness="0">
-                            <Slider x:Name="VolumeSlider" Style="{StaticResource FilledSlider}" Width="350" Height="24"
+                        <Border Background="{StaticResource SurfaceBrush}">
+                            <Slider x:Name="VolumeSlider" Style="{StaticResource FilledSlider}" Width="320" Height="24"
                                     VerticalAlignment="Center" Opacity="0"
                                     Minimum="0" Maximum="1" Value="0.5"
                                     SmallChange="0.01" LargeChange="0.1"/>

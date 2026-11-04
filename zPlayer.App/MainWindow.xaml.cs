@@ -1,20 +1,22 @@
 ﻿using Microsoft.Win32;
 using System.Globalization;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using zPlayer.App.Commands;
 using zPlayer.App.Converters;
 using zPlayer.App.Playback;
 using zPlayer.App.Views;
 using zPlayer.Core;
-using zPlayer.App.Commands;
 using zPlayer.Infrastructure;
 using zPlayer.Infrastructure.Storage;
 
@@ -34,7 +36,7 @@ namespace zPlayer.App
             Interval = TimeSpan.FromMilliseconds(125)
         };
         private readonly DispatcherTimer playbackTimer = new() {
-            Interval = TimeSpan.FromMilliseconds(50)
+            Interval = TimeSpan.FromMilliseconds(100)
         };
 
         private readonly BitmapImage playIcon = new(new Uri("pack://application:,,,/Assets/Icons/Play_32x.png"));
@@ -114,6 +116,26 @@ namespace zPlayer.App
 
             VolumeSlider.ValueChanged += VolumeSlider_ValueChanged;
             VolumeSlider.AddHandler(Thumb.DragCompletedEvent, new DragCompletedEventHandler(VolumeSlider_DragCompleted), handledEventsToo: true);
+        }
+        #endregion
+
+        #region Window titlebar color
+        [DllImport("dwmapi.dll")]
+        private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attribute, ref int value, int size);
+
+        protected override void OnSourceInitialized(EventArgs e) {
+            base.OnSourceInitialized(e);
+
+            static int ToColorRef(Color color) {
+                return color.R | (color.G << 8) | (color.B << 16);
+            }
+
+            IntPtr handle = new WindowInteropHelper(this).Handle;
+            int background = ToColorRef(Color.FromRgb(43, 44, 59));
+            int foreground = ToColorRef(Color.FromRgb(240, 240, 240));
+
+            DwmSetWindowAttribute(handle, 35, ref background, sizeof(int));
+            DwmSetWindowAttribute(handle, 36, ref foreground, sizeof(int));
         }
         #endregion
 

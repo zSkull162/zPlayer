@@ -24,19 +24,45 @@ namespace zPlayer.App.Views
         }
 
         public void RefreshAlbums() {
+            AlbumsGrid.ItemsSource = ApplySorting();
+            AlbumsInLibraryText.Text = $"— {library.Albums.Count} in library";
+        }
+
+        private List<object> ApplySorting() {
             string search = AlbumSearchBox.Text.Trim();
+            bool descending = SortOrderBox.SelectedIndex == 1;
+            bool numeric = SortTypeBox.SelectedIndex == 2;
+            ((ComboBoxItem)SortOrderBox.Items[0]).Content = numeric ? "Low-High" : "A-Z";
+            ((ComboBoxItem)SortOrderBox.Items[1]).Content = numeric ? "High-Low" : "Z-A";
+
             static bool Contains(string originalString, string term) {
                 return originalString.Contains(term, StringComparison.OrdinalIgnoreCase);
             }
+            static IOrderedEnumerable<Album> OrderedList<T>(IEnumerable<Album> albums, Func<Album, T> keySelector, bool descending, IComparer<T>? comparer = null) {
+                return descending ? albums.OrderByDescending(keySelector, comparer) : albums.OrderBy(keySelector, comparer);
+            }
 
+            IEnumerable<Album> filtered = library.Albums.Where(album =>
+                string.IsNullOrWhiteSpace(search) || Contains(album.Title, search) || Contains(album.Artist, search));
+
+            IOrderedEnumerable<Album> sorted = SortTypeBox.SelectedIndex switch {
+                1 => OrderedList(filtered, album => album.Artist, descending, StringComparer.OrdinalIgnoreCase),
+                2 => OrderedList(filtered, album => album.Duration, descending),
+                _ => OrderedList(filtered, album => album.Title, descending, StringComparer.OrdinalIgnoreCase)
+            };
+
+            if (SortTypeBox.SelectedIndex != 0) {
+                sorted = sorted.ThenBy(album => album.Title, StringComparer.OrdinalIgnoreCase);
+            }
+            object? selectedItem = AlbumsGrid.SelectedItem;
             List<object> items = [new CreateAlbumTile()];
-            items.AddRange(library.GetAlbums().Where(album =>
-                string.IsNullOrWhiteSpace(search) ||
-                Contains(album.Title, search) || Contains(album.Artist, search))
-            );
+            items.AddRange(sorted);
+            return items;
+        }
 
-            AlbumsGrid.ItemsSource = items;
-            AlbumsInLibraryText.Text = $"— {library.Albums.Count} in library";
+        private void SortBox_SelectionChanged(object sender, SelectionChangedEventArgs e) {
+            if (!IsInitialized) return;
+            RefreshAlbums();
         }
 
         private void AlbumSearchBox_TextChanged(object sender, TextChangedEventArgs e) {

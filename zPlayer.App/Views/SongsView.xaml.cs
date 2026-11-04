@@ -22,6 +22,8 @@ namespace zPlayer.App.Views
 
             songsView = CollectionViewSource.GetDefaultView(library.Songs);
             songsView.Filter = FilterSong;
+
+            ApplySorting();
             SongsInLibraryText.Text = $"— {library.Songs.Count} in library";
         }
 
@@ -35,6 +37,35 @@ namespace zPlayer.App.Views
             }
 
             return Contains(song.Title, search) || Contains(song.Artist, search) || Contains(song.AlbumTitle, search) || Contains(song.AlbumArtist, search);
+        }
+
+        private void ApplySorting() {
+            if (songsView == null) return;
+
+            string property = SortTypeBox.SelectedIndex switch {
+                1 => nameof(Song.Artist),
+                2 => nameof(Song.AlbumTitle),
+                3 => nameof(Song.Duration),
+                _ => nameof(Song.Title)
+            };
+            bool sortingLength = property == nameof(Song.Duration);
+            ((ComboBoxItem)SortOrderBox.Items[0]).Content = sortingLength ? "Low-High" : "A-Z";
+            ((ComboBoxItem)SortOrderBox.Items[1]).Content = sortingLength ? "High-Low" : "Z-A";
+
+            ListSortDirection direction = SortOrderBox.SelectedIndex == 1 ? ListSortDirection.Descending : ListSortDirection.Ascending;
+            using (songsView.DeferRefresh()) {
+                songsView.SortDescriptions.Clear();
+                songsView.SortDescriptions.Add(new SortDescription(property, direction));
+
+                if (property != nameof(Song.Title)) {
+                    songsView.SortDescriptions.Add(new SortDescription(nameof(Song.Title), ListSortDirection.Ascending));
+                }
+            }
+        }
+
+        private void SortBox_SelectionChanged(object sender, SelectionChangedEventArgs e) {
+            if (songsView == null) return;
+            ApplySorting();
         }
 
         private void SongSearchBox_TextChanged(object sender, TextChangedEventArgs e) {
