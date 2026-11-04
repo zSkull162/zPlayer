@@ -34,28 +34,38 @@
         <Border Grid.Row="0" Style="{StaticResource PanelTop}">
             <Grid Grid.Row="0">
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="180"/>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="400"/>
+                    <ColumnDefinition Width="220"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="180"/>
                 </Grid.ColumnDefinitions>
-                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
+                <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Center">
                     <TextBlock Text="Songs" Padding="0,0,4,0"
                             Style="{StaticResource WindowTitle}"/>
                     <TextBlock x:Name="SongsInLibraryText" Text="— 000 in library"
                             Style="{StaticResource WindowTitle}" FontWeight="Normal" Opacity="0.5"/>
                 </StackPanel>
 
-                <ComboBox Grid.Column="2" HorizontalAlignment="Right">
-                  <ComboBoxItem Header="Title"/>
-                  <ComboBoxItem Header="Artist"/>
-                  <ComboBoxItem Header="Album"/>
-                  <ComboBoxItem Header="Length"/>
-                </ComboBox>
-
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Grid.Column="3">
+                    <ComboBox Name="SortTypeBox"
+                              SelectedIndex="0" Style="{StaticResource HeaderComboBox}"
+                              MinWidth="75" Margin="0,0,12,0">
+                        <ComboBoxItem Content="Title"/>
+                        <ComboBoxItem Content="Artist"/>
+                        <ComboBoxItem Content="Album"/>
+                        <ComboBoxItem Content="Length"/> <!--Change SortOrderBox to "High-Low" and "Low-High" if this is selected-->
+                    </ComboBox>
+                    <ComboBox x:Name="SortOrderBox"
+                              SelectedIndex="0" Style="{StaticResource HeaderComboBox}"
+                              MinWidth="75" Margin="0,0,12,0">
+                        <ComboBoxItem Content="A-Z"/>
+                        <ComboBoxItem Content="Z-A"/>
+                    </ComboBox>
+                </StackPanel>
+                
                 <TextBox x:Name="SongSearchBox" TextChanged="SongSearchBox_TextChanged"
-                         Style="{StaticResource SearchBox}" Tag="Search Songs..." FontSize="12"
-                         Grid.Column="3" HorizontalAlignment="Right"/>
+                         Style="{StaticResource SearchBox}" Tag="Search Songs..." FontSize="12" Grid.Column="4"/>
             </Grid>
         </Border>
         
