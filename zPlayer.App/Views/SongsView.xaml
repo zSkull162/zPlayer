@@ -174,7 +174,7 @@
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
 
-                                    <Border Width="40" Height="40" CornerRadius="4">
+                                    <Border Width="40" Height="40" CornerRadius="3">
                                         <Border.Background>
                                             <ImageBrush ImageSource="{Binding Artwork, Converter={StaticResource ArtworkConverter}}" Stretch="UniformToFill"/>
                                         </Border.Background>

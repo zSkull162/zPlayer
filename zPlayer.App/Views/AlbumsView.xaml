@@ -94,7 +94,8 @@
                  BorderThickness="0"
                  PreviewMouseLeftButtonDown="AlbumsGrid_LeftMouseDown"
                  MouseDoubleClick="AlbumsGrid_MouseDoubleClick"
-                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                 ScrollViewer.CanContentScroll="False">
 
             <ListBox.ContextMenu>
                 <ContextMenu Style="{StaticResource RoundedContextMenu}">

@@ -23,6 +23,9 @@
         <Setter Property="SelectionUnit" Value="FullRow"/>
         <Setter Property="HorizontalScrollBarVisibility" Value="Disabled"/>
         <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+
+        <Setter Property="ScrollViewer.CanContentScroll" Value="False"/>
+        <Setter Property="VirtualizingPanel.ScrollUnit" Value="Pixel"/>
     </Style>
 
     <Style TargetType="DataGridColumnHeader" x:Key="SongGridHeader">
