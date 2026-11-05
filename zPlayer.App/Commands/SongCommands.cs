@@ -13,13 +13,13 @@ namespace zPlayer.App.Commands
         public ICommand DeleteSongCommand { get; }
         public ICommand MoveSongToAlbumCommand { get; }
 
-        public SongCommands(PlaybackController player, Action<Song> editSong, Action<Song> deleteSong, Action<Song> moveSongToAlbum) {
-            PlaySongCommand = new RelayCommand<Song>(song => player.PlayQueue([song]));
-            PlaySongNextCommand = new RelayCommand<Song>(song => player.InsertNext([song]));
-            AddSongToQueueCommand = new RelayCommand<Song>(song => player.AddToQueue([song]));
-            EditSongCommand = new RelayCommand<Song>(editSong);
-            DeleteSongCommand = new RelayCommand<Song>(deleteSong);
-            MoveSongToAlbumCommand = new RelayCommand<Song>(moveSongToAlbum);
+        public SongCommands(PlaybackController player, Action<Song[]> editSongs, Action<Song[]> deleteSongs, Action<Song[]> moveSongs) {
+            PlaySongCommand = new SelectionCommand<Song>(songs => player.PlayQueue(songs));
+            PlaySongNextCommand = new SelectionCommand<Song>(songs => player.InsertNext(songs));
+            AddSongToQueueCommand = new SelectionCommand<Song>(songs => player.AddToQueue(songs));
+            EditSongCommand = new SelectionCommand<Song>(editSongs);
+            DeleteSongCommand = new SelectionCommand<Song>(deleteSongs);
+            MoveSongToAlbumCommand = new SelectionCommand<Song>(moveSongs);
         }
     }
 }

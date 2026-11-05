@@ -32,6 +32,7 @@ namespace zPlayer.App
         private readonly MediaKeyListener? mediaKeys;
 
         private readonly SongCommands songCommands;
+        private readonly AlbumCommands albumCommands;
         private readonly ViewState viewState = new();
 
         private readonly DispatcherTimer volumeCloseTimer = new() {
@@ -51,7 +52,8 @@ namespace zPlayer.App
         private const double QueueExpandedWidth = 320;
 
         public MainWindow() {
-            songCommands = new(player, ShowEditSong, DeleteSong, ShowMoveToAlbum);
+            songCommands = new(player, ShowEditSongs, DeleteSongs, ShowMoveSongsToAlbum);
+            albumCommands = new(player, ShowEditAlbums, DeleteAlbums);
 
             InitializeComponent();
             InitDatabase();
@@ -284,10 +286,9 @@ namespace zPlayer.App
                     MainContent.Content = songView;
                     break;
                 case "Albums":
-                    AlbumsView albumView = new(library, viewState.AlbumsSort);
+                    AlbumsView albumView = new(library, albumCommands, viewState.AlbumsSort);
                     albumView.AlbumOpened += OpenAlbumDetails;
                     albumView.CreateAlbumRequested += ShowCreateAlbum;
-                    albumView.EditAlbumRequested += ShowEditAlbum;
                     MainContent.Content = albumView;
                     break;
             }
@@ -386,6 +387,40 @@ namespace zPlayer.App
             OpenPopup(view);
         }
 
+        private void ShowEditSongs(Song[] songs) {
+            if (songs.Length == 1) {
+                ShowEditSong(songs[0]);
+                return;
+            }
+            MultiEditView view = new(songs.Length, false);
+            view.CloseRequested += ClosePopup;
+            view.SaveRequested += changes => {
+                try {
+                    Song[] drafts = songs.Select(song => song.Clone()).ToArray();
+
+                    foreach (Song draft in drafts) {
+                        if (changes.Artist != null) draft.Artist = changes.Artist;
+
+                        if (changes.ArtworkMode == MultiArtworkMode.Automatic) {
+                            draft.Artwork = metadataReader.Read(draft.FilePath).Artwork;
+                        }
+                        else if (changes.ArtworkMode == MultiArtworkMode.Custom) {
+                            draft.Artwork = changes.Artwork?.ToArray();
+                        }
+                    }
+                    database.SaveSongs(drafts);
+                    ApplySavedSongs(drafts);
+                }
+                catch (Exception ex) {
+                    MessageBox.Show(this, $"Could not save the songs:\n{ex.Message}", "Save Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+                RefreshAfterSongEdit();
+                ClosePopup();
+            };
+            OpenPopup(view);
+        }
+
         private void ShowEditAlbum(Album album) {
             EditAlbumView view = new(album);
 
@@ -414,6 +449,50 @@ namespace zPlayer.App
                 else if (MainContent.Content is AlbumDetailsView detailsView) detailsView.RefreshView();
 
                 UpdatePlaybackUI();
+                ClosePopup();
+            };
+            OpenPopup(view);
+        }
+
+        private void ShowEditAlbums(Album[] albums) {
+            if (albums.Length == 1) {
+                ShowEditAlbum(albums[0]);
+                return;
+            }
+            MultiEditView view = new(albums.Length, true);
+            view.CloseRequested += ClosePopup;
+            view.SaveRequested += changes => {
+                Album[] drafts = albums.Select(album => album.Clone()).ToArray();
+
+                foreach (Album draft in drafts) {
+                    if (changes.Artist != null) draft.Artist = changes.Artist;
+
+                    if (changes.ArtworkMode != MultiArtworkMode.Keep) {
+                        draft.CustomArtwork = changes.ArtworkMode == MultiArtworkMode.Custom ? changes.Artwork?.ToArray() : null;
+                        draft.ArtworkSongId = null;
+                    }
+                }
+
+                try {
+                    database.SaveAlbums(drafts);
+                }
+                catch (Exception ex) {
+                    MessageBox.Show(this, $"Could not save the albums:\n{ex.Message}", "Save Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                foreach (Album draft in drafts) {
+                    Album original = albums.First(album => album.Id == draft.Id);
+                    original.Artist = draft.Artist;
+                    original.CustomArtwork = draft.CustomArtwork?.ToArray();
+                    original.ArtworkSongId = draft.ArtworkSongId;
+
+                    foreach (Song song in library.Songs.Where(song => song.AlbumId == original.Id)) {
+                        song.AlbumTitle = original.Title;
+                        song.AlbumArtist = original.Artist;
+                    }
+                }
+                RefreshAfterSongEdit();
                 ClosePopup();
             };
             OpenPopup(view);
@@ -473,6 +552,37 @@ namespace zPlayer.App
             };
             OpenPopup(view);
         }
+
+        private void ShowMoveSongsToAlbum(Song[] songs) {
+            MoveToAlbumView view = new(library, songs);
+            view.CloseRequested += ClosePopup;
+            view.MoveRequested += selectedAlbum => {
+                Album? destination = library.GetAlbum(selectedAlbum.Id);
+                if (destination == null) return;
+
+                int nextPosition = destination.Songs.Select(song => song.AlbumPosIndex).DefaultIfEmpty(-1).Max() + 1;
+                Song[] drafts = songs.Where(song => song.AlbumId != destination.Id).Select(song => song.Clone()).ToArray();
+
+                foreach (Song draft in drafts) {
+                    draft.AlbumId = destination.Id;
+                    draft.AlbumTitle = destination.Title;
+                    draft.AlbumArtist = destination.Artist;
+                    draft.AlbumPosIndex = nextPosition++;
+                }
+
+                try {
+                    database.SaveSongs(drafts);
+                }
+                catch (Exception ex) {
+                    MessageBox.Show(this, ex.Message, "Move Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+                ApplySavedSongs(drafts);
+                RefreshAfterSongEdit();
+                ClosePopup();
+            };
+            OpenPopup(view);
+        }
         #endregion
 
         private void OpenAlbumDetails(Album album) {
@@ -488,6 +598,7 @@ namespace zPlayer.App
             MainContent.Content = detailsView;
         }
 
+        #region Delete/Save methods
         private void DeleteSong(Song song) {
             if (MessageBox.Show(this, $"Remove \"{song.Title}\" from your library?", "Delete Song", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
             try {
@@ -502,6 +613,45 @@ namespace zPlayer.App
             int queueIndex = player.GetQueueSongs().FindIndex(existing => existing.Id == song.Id);
             if (queueIndex >= 0) player.RemoveQueueIndex(queueIndex);
 
+            RefreshAfterSongEdit();
+        }
+
+        private void DeleteSongs(Song[] songs) {
+            if (MessageBox.Show(this, $"Remove {songs.Length} selected song(s) from the library?", "Delete Songs", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
+
+            try {
+                database.DeleteSongs(songs.Select(song => song.Id));
+            }
+            catch (Exception ex) {
+                MessageBox.Show(this, ex.Message, "Delete Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+            HashSet<Guid> ids = songs.Select(song => song.Id).ToHashSet();
+
+            foreach (Song song in songs) {
+                library.RemoveSong(song.Id);
+            }
+            List<Song> queue = player.GetQueueSongs();
+            for (int i = queue.Count - 1; i >= 0; i--) {
+                if (ids.Contains(queue[i].Id)) player.RemoveQueueIndex(i);
+            }
+            RefreshAfterSongEdit();
+        }
+
+        private void DeleteAlbums(Album[] albums) {
+            if (MessageBox.Show(this, $"Remove {albums.Length} selected album(s)? Their songs will stay in the library.", "Delete Albums", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
+
+            try {
+                database.DeleteAlbums(albums.Select(album => album.Id));
+            }
+            catch (Exception ex) {
+                MessageBox.Show(this, ex.Message, "Delete Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            foreach (Album album in albums) {
+                library.RemoveAlbum(album.Id);
+            }
             RefreshAfterSongEdit();
         }
 
@@ -522,12 +672,26 @@ namespace zPlayer.App
             if (MainContent.Content is AlbumDetailsView detailsView) detailsView.RefreshView();
         }
 
+        private void ApplySavedSongs(IEnumerable<Song> drafts) {
+            Dictionary<Guid, Song> originals = library.Songs.ToDictionary(song => song.Id);
+
+            foreach (Song draft in drafts) {
+                originals[draft.Id].ApplyEdits(draft);
+            }
+
+            foreach (Album album in library.Albums) {
+                album.Songs.Clear();
+                album.Songs.AddRange(library.Songs.Where(song => song.AlbumId == album.Id).OrderBy(song => song.AlbumPosIndex));
+            }
+        }
+        #endregion
+
         private void RefreshAfterSongEdit() {
             if (MainContent.Content is AlbumDetailsView details) {
                 details.RefreshView();
             }
-            else if (MainContent.Content is AlbumsView) {
-                NavigateToPage("Albums");
+            else if (MainContent.Content is AlbumsView albumsView) {
+                albumsView.RefreshAlbums();
             }
             CollectionViewSource.GetDefaultView(library.Songs).Refresh();
             UpdatePlaybackUI();

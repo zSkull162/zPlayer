@@ -126,43 +126,36 @@ namespace zPlayer.Infrastructure.Storage
             transaction.Commit();
         }
 
-        public void SaveAlbum(Album album) {
+        public void DeleteAlbums(IEnumerable<Guid> albumIds) {
+            using SqliteConnection connection = new(connectionString);
+            connection.Open();
+            using SqliteTransaction transaction = connection.BeginTransaction();
+            using SqliteCommand command = connection.CreateCommand();
+
+            command.Transaction = transaction;
+            command.CommandText = """
+                UPDATE Songs SET AlbumId = NULL WHERE AlbumId = $id;
+                DELETE FROM Albums WHERE Id = $id;
+            """;
+
+            SqliteParameter id = command.Parameters.Add("$id", SqliteType.Text);
+
+            foreach (Guid albumId in albumIds.Distinct()) {
+                id.Value = albumId.ToString();
+                command.ExecuteNonQuery();
+            }
+            transaction.Commit();
+        }
+
+        public void SaveAlbum(Album album) => SaveAlbums([album]);
+
+        public void SaveAlbums(IEnumerable<Album> albums) {
             using SqliteConnection connection = new(connectionString);
             connection.Open();
             using SqliteTransaction transaction = connection.BeginTransaction();
 
-            using (SqliteCommand command = connection.CreateCommand()) {
-                command.Transaction = transaction;
-                command.CommandText = """
-                    INSERT INTO Albums (Id, Title, Artist, CustomArtwork, ArtworkSongId)
-                    VALUES ($id, $title, $artist, $artwork, $artworkSongId)
-                    ON CONFLICT(Id) DO UPDATE SET
-                        Title = excluded.Title,
-                        Artist = excluded.Artist,
-                        CustomArtwork = excluded.CustomArtwork,
-                        ArtworkSongId = excluded.ArtworkSongId;
-                """;
-
-                command.Parameters.AddWithValue("$id", album.Id.ToString());
-                command.Parameters.AddWithValue("$title", album.Title);
-                command.Parameters.AddWithValue("$artist", album.Artist);
-                command.Parameters.AddWithValue("$artwork", (object?)album.CustomArtwork ?? DBNull.Value);
-                command.Parameters.AddWithValue("$artworkSongId", album.ArtworkSongId.HasValue ? album.ArtworkSongId.Value.ToString() : DBNull.Value);
-                command.ExecuteNonQuery();
-            }
-
-            using (SqliteCommand command = connection.CreateCommand()) {
-                command.Transaction = transaction;
-                command.CommandText = """
-                    UPDATE Songs
-                    SET AlbumTitle = $title, AlbumArtist = $artist
-                    WHERE AlbumId = $albumId;
-                """;
-
-                command.Parameters.AddWithValue("$title", album.Title);
-                command.Parameters.AddWithValue("$artist", album.Artist);
-                command.Parameters.AddWithValue("$albumId", album.Id.ToString());
-                command.ExecuteNonQuery();
+            foreach (Album album in albums) {
+                SaveAlbumCore(connection, transaction, album);
             }
             transaction.Commit();
         }
@@ -233,6 +226,42 @@ namespace zPlayer.Infrastructure.Storage
             }
             transaction.Commit();
         }
+
+        private void SaveAlbumCore(SqliteConnection connection, SqliteTransaction transaction, Album album) {
+            using (SqliteCommand command = connection.CreateCommand()) {
+                command.Transaction = transaction;
+                command.CommandText = """
+                    INSERT INTO Albums (Id, Title, Artist, CustomArtwork, ArtworkSongId)
+                    VALUES ($id, $title, $artist, $artwork, $artworkSongId)
+                    ON CONFLICT(Id) DO UPDATE SET
+                        Title = excluded.Title,
+                        Artist = excluded.Artist,
+                        CustomArtwork = excluded.CustomArtwork,
+                        ArtworkSongId = excluded.ArtworkSongId;
+                """;
+
+                command.Parameters.AddWithValue("$id", album.Id.ToString());
+                command.Parameters.AddWithValue("$title", album.Title);
+                command.Parameters.AddWithValue("$artist", album.Artist);
+                command.Parameters.AddWithValue("$artwork", (object?)album.CustomArtwork ?? DBNull.Value);
+                command.Parameters.AddWithValue("$artworkSongId", album.ArtworkSongId.HasValue ? album.ArtworkSongId.Value.ToString() : DBNull.Value);
+                command.ExecuteNonQuery();
+            }
+
+            using (SqliteCommand command = connection.CreateCommand()) {
+                command.Transaction = transaction;
+                command.CommandText = """
+                    UPDATE Songs
+                    SET AlbumTitle = $title, AlbumArtist = $artist
+                    WHERE AlbumId = $albumId;
+                """;
+
+                command.Parameters.AddWithValue("$title", album.Title);
+                command.Parameters.AddWithValue("$artist", album.Artist);
+                command.Parameters.AddWithValue("$albumId", album.Id.ToString());
+                command.ExecuteNonQuery();
+            }
+        }
         #endregion
 
         #region Save/Load Song Methods
@@ -246,11 +275,73 @@ namespace zPlayer.Infrastructure.Storage
             command.ExecuteNonQuery();
         }
 
-        public void SaveSong(Song song) {
+        public void DeleteSongs(IEnumerable<Guid> songIds) {
             using SqliteConnection connection = new(connectionString);
+            connection.Open();
+            using SqliteTransaction transaction = connection.BeginTransaction();
+            using SqliteCommand command = connection.CreateCommand();
+
+            command.Transaction = transaction;
+            command.CommandText = "DELETE FROM Songs WHERE Id = $id;";
+            SqliteParameter id = command.Parameters.Add("$id", SqliteType.Text);
+
+            foreach (Guid songId in songIds.Distinct()) {
+                id.Value = songId.ToString();
+                command.ExecuteNonQuery();
+            }
+            transaction.Commit();
+        }
+
+        public void SaveSong(Song song) => SaveSongs([song]);
+
+        public void SaveSongs(IEnumerable<Song> songs) {
+            using SqliteConnection connection = new(connectionString);
+            connection.Open();
+            using SqliteTransaction transaction = connection.BeginTransaction();
+
+            foreach (Song song in songs) {
+                SaveSongCore(connection, transaction, song);
+            }
+            transaction.Commit();
+        }
+
+        public List<Song> LoadSongs() {
+            List<Song> songs = [];
+            using SqliteConnection connection = new SqliteConnection(connectionString);
             connection.Open();
 
             using SqliteCommand command = connection.CreateCommand();
+            command.CommandText = """
+                SELECT Id, Title, Artist, FilePath,
+                       DurationTicks, AlbumTitle,
+                       AlbumArtist, Artwork, AlbumId, AlbumPosIndex
+                FROM Songs
+                ORDER BY AlbumId, AlbumPosIndex, rowid;
+            """;
+
+            using SqliteDataReader reader = command.ExecuteReader();
+            while (reader.Read()) {
+                Song song = new() {
+                    Id = Guid.Parse(reader.GetString(0)),
+                    Title = reader.GetString(1),
+                    Artist = reader.GetString(2),
+                    FilePath = reader.GetString(3),
+                    Duration = TimeSpan.FromTicks(reader.GetInt64(4)),
+                    AlbumTitle = reader.GetString(5),
+                    AlbumArtist = reader.GetString(6),
+                    Artwork = reader.IsDBNull(7) ? null : (byte[])reader.GetValue(7),
+                    AlbumId = reader.IsDBNull(8) ? null : Guid.Parse(reader.GetString(8)),
+                    AlbumPosIndex = reader.GetInt32(9)
+                };
+                songs.Add(song);
+            }
+            return songs;
+        }
+
+        private static void SaveSongCore(SqliteConnection connection, SqliteTransaction transaction, Song song) {
+            using SqliteCommand command = connection.CreateCommand();
+            command.Transaction = transaction;
+
             command.CommandText = """
                 INSERT INTO Songs (
                     Id, Title, Artist, FilePath,
@@ -287,39 +378,6 @@ namespace zPlayer.Infrastructure.Storage
             command.Parameters.AddWithValue("$albumPosIndex", song.AlbumPosIndex);
 
             command.ExecuteNonQuery();
-        }
-
-        public List<Song> LoadSongs() {
-            List<Song> songs = [];
-            using SqliteConnection connection = new SqliteConnection(connectionString);
-            connection.Open();
-
-            using SqliteCommand command = connection.CreateCommand();
-            command.CommandText = """
-                SELECT Id, Title, Artist, FilePath,
-                       DurationTicks, AlbumTitle,
-                       AlbumArtist, Artwork, AlbumId, AlbumPosIndex
-                FROM Songs
-                ORDER BY AlbumId, AlbumPosIndex, rowid;
-            """;
-
-            using SqliteDataReader reader = command.ExecuteReader();
-            while (reader.Read()) {
-                Song song = new() {
-                    Id = Guid.Parse(reader.GetString(0)),
-                    Title = reader.GetString(1),
-                    Artist = reader.GetString(2),
-                    FilePath = reader.GetString(3),
-                    Duration = TimeSpan.FromTicks(reader.GetInt64(4)),
-                    AlbumTitle = reader.GetString(5),
-                    AlbumArtist = reader.GetString(6),
-                    Artwork = reader.IsDBNull(7) ? null : (byte[])reader.GetValue(7),
-                    AlbumId = reader.IsDBNull(8) ? null : Guid.Parse(reader.GetString(8)),
-                    AlbumPosIndex = reader.GetInt32(9)
-                };
-                songs.Add(song);
-            }
-            return songs;
         }
         #endregion
     }

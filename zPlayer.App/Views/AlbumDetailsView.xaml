@@ -138,9 +138,7 @@
         </Grid>
 
         <!--Songs-->
-        <DataGrid x:Name="AlbumSongsGrid"
-                Grid.Row="3"
-                Margin="2,4,2,0"
+        <DataGrid x:Name="AlbumSongsGrid" Grid.Row="3" Margin="2,4,2,0"
                 ItemsSource="{Binding Songs}"
                 Style="{StaticResource SongsGrid}"
                 RowStyle="{StaticResource SongGridRow}"
@@ -156,13 +154,13 @@
             <DataGrid.ContextMenu>
                 <ContextMenu Style="{StaticResource RoundedContextMenu}"
                              DataContext="{Binding PlacementTarget, RelativeSource={RelativeSource Self}}">
-                    <MenuItem Header="Edit Info" Command="{Binding Tag.EditSongCommand}" CommandParameter="{Binding SelectedItem}">
+                    <MenuItem Header="Edit Info" Command="{Binding Tag.EditSongCommand}" CommandParameter="{Binding}">
                         <MenuItem.Icon>
                             <Image Source="/Assets/Icons/Edit_32x.png"/>
                         </MenuItem.Icon>
                     </MenuItem>
                     <Separator Style="{StaticResource RoundedSeparator}"/>
-                    <MenuItem Header="Move to another Album" Command="{Binding Tag.MoveSongToAlbumCommand}" CommandParameter="{Binding SelectedItem}">
+                    <MenuItem Header="Move to another Album" Command="{Binding Tag.MoveSongToAlbumCommand}" CommandParameter="{Binding}">
                         <MenuItem.Icon>
                             <Image Source="/Assets/Icons/MoveToAlbum_32x.png"/>
                         </MenuItem.Icon>

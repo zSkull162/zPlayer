@@ -93,16 +93,18 @@ namespace zPlayer.App.Views
 
         private void AlbumSongsGrid_RightMouseDown(object sender, MouseButtonEventArgs e) {
             if (e.OriginalSource is DependencyObject source &&
-                ItemsControl.ContainerFromElement(AlbumSongsGrid, source) is DataGridRow { Item: Song song }) {
-                AlbumSongsGrid.SelectedItem = song;
+                    ItemsControl.ContainerFromElement(AlbumSongsGrid, source) is DataGridRow { Item: Song song }) {
+                if (!AlbumSongsGrid.SelectedItems.Contains(song)) {
+                    AlbumSongsGrid.UnselectAll();
+                    AlbumSongsGrid.SelectedItem = song;
+                }
+                e.Handled = true;
             }
-            else {
-                AlbumSongsGrid.UnselectAll();
-            }
+            else AlbumSongsGrid.UnselectAll();
         }
 
         private void AlbumSongsGrid_ContextMenuOpening(object sender, ContextMenuEventArgs e) {
-            if (AlbumSongsGrid.SelectedItem is not Song) e.Handled = true;
+            if (AlbumSongsGrid.SelectedItems.Count == 0) e.Handled = true;
             CommandManager.InvalidateRequerySuggested();
         }
         #endregion

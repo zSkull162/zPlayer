@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using zPlayer.Core;
 
 namespace zPlayer.App.Views
@@ -14,13 +15,23 @@ namespace zPlayer.App.Views
         public event Action? CloseRequested;
         public event Action<Album>? MoveRequested;
 
-        public MoveToAlbumView(MusicLibrary library, Song song) {
-            draft = song.Clone();
-            SourceAlbum = song.AlbumId.HasValue ? library.GetAlbum(song.AlbumId.Value) : null;
-            InitializeComponent();
-            DataContext = draft;
+        public MoveToAlbumView(MusicLibrary library, Song song) : this(library, [song]) { }
 
-            AlbumBox.ItemsSource = library.GetAlbums().Where(album => album.Id != song.AlbumId).ToList();
+        public MoveToAlbumView(MusicLibrary library, Song[] songs) {
+            if (songs.Length == 0) return;
+
+            bool sameAlbum = songs.Select(song => song.AlbumId).Distinct().Count() == 1;
+            Guid? sourceId = sameAlbum ? songs[0].AlbumId : null;
+
+            SourceAlbum = sourceId.HasValue ? library.GetAlbum(sourceId.Value) : null;
+            InitializeComponent();
+
+            DataContext = new {
+                Title = songs.Length == 1 ? songs[0].Title : $"{songs.Length} selected songs",
+                AlbumTitle = sameAlbum ? songs[0].AlbumTitle : "(Multiple albums)"
+            };
+
+            AlbumBox.ItemsSource = library.GetAlbums().Where(album => !sameAlbum || album.Id != sourceId).ToList();
             AlbumBox.SelectedIndex = -1;
         }
 

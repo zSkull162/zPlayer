@@ -301,7 +301,7 @@
             <Border Background="Black" MouseLeftButtonDown="PopupOverlay_Click" Opacity="0.5"/>
             <Border x:Name="PopupContainer" HorizontalAlignment="Center" VerticalAlignment="Center"
                     Background="{StaticResource BackgroundBrush}" BorderBrush="{StaticResource BorderBrush}"
-                    BorderThickness="2" CornerRadius="3" Padding="20" MaxWidth="600" MaxHeight="700">
+                    BorderThickness="2" CornerRadius="3" Padding="4" MaxWidth="600" MaxHeight="700">
                 <ContentControl x:Name="PopupContent"/>
             </Border>
         </Grid>

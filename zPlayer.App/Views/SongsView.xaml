@@ -124,34 +124,34 @@
                 <DataGrid.ContextMenu>
                     <ContextMenu Style="{StaticResource RoundedContextMenu}"
                                  DataContext="{Binding PlacementTarget, RelativeSource={RelativeSource Self}}">
-                        <MenuItem Header="Play" Command="{Binding Tag.PlaySongCommand}" CommandParameter="{Binding SelectedItem}">
+                        <MenuItem Header="Play" Command="{Binding Tag.PlaySongCommand}" CommandParameter="{Binding}">
                             <MenuItem.Icon>
                                 <Image Source="/Assets/Icons/Play_32x.png"/>
                             </MenuItem.Icon>
                         </MenuItem>
-                        <MenuItem Header="Play Next" Command="{Binding Tag.PlaySongNextCommand}" CommandParameter="{Binding SelectedItem}">
+                        <MenuItem Header="Play Next" Command="{Binding Tag.PlaySongNextCommand}" CommandParameter="{Binding}">
                             <MenuItem.Icon>
                                 <Image Source="/Assets/Icons/QueueNext_32x.png"/>
                             </MenuItem.Icon>
                         </MenuItem>
-                        <MenuItem Header="Add to Queue" Command="{Binding Tag.AddSongToQueueCommand}" CommandParameter="{Binding SelectedItem}">
+                        <MenuItem Header="Add to Queue" Command="{Binding Tag.AddSongToQueueCommand}" CommandParameter="{Binding}">
                             <MenuItem.Icon>
                                 <Image Source="/Assets/Icons/QueueAdd_32x.png"/>
                             </MenuItem.Icon>
                         </MenuItem>
                         <Separator Style="{StaticResource RoundedSeparator}"/>
-                        <MenuItem Header="Edit Info" Command="{Binding Tag.EditSongCommand}" CommandParameter="{Binding SelectedItem}">
+                        <MenuItem Header="Edit Info" Command="{Binding Tag.EditSongCommand}" CommandParameter="{Binding}">
                             <MenuItem.Icon>
                                 <Image Source="/Assets/Icons/Edit_32x.png"/>
                             </MenuItem.Icon>
                         </MenuItem>
-                        <MenuItem Header="Delete" Command="{Binding Tag.DeleteSongCommand}" CommandParameter="{Binding SelectedItem}">
+                        <MenuItem Header="Delete" Command="{Binding Tag.DeleteSongCommand}" CommandParameter="{Binding}">
                             <MenuItem.Icon>
                                 <Image Source="/Assets/Icons/Remove_32x.png"/>
                             </MenuItem.Icon>
                         </MenuItem>
                         <Separator Style="{StaticResource RoundedSeparator}"/>
-                        <MenuItem Header="Move to Album" Command="{Binding Tag.MoveSongToAlbumCommand}" CommandParameter="{Binding SelectedItem}">
+                        <MenuItem Header="Move to Album" Command="{Binding Tag.MoveSongToAlbumCommand}" CommandParameter="{Binding}">
                             <MenuItem.Icon>
                                 <Image Source="/Assets/Icons/MoveToAlbum_32x.png"/>
                             </MenuItem.Icon>

@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Input;
 using zPlayer.Core;
+using zPlayer.App.Commands;
 
 namespace zPlayer.App.Views
 {
@@ -14,11 +15,13 @@ namespace zPlayer.App.Views
         private readonly SortState sortState;
         private bool restoringSort;
 
+        public AlbumCommands Commands { get; }
         public event Action<Album>? AlbumOpened;
         public event Action? CreateAlbumRequested;
         public event Action<Album>? EditAlbumRequested;
 
-        public AlbumsView(MusicLibrary library, SortState sortState) {
+        public AlbumsView(MusicLibrary library, AlbumCommands commands, SortState sortState) {
+            Commands = commands;
             this.library = library;
             this.sortState = sortState;
             restoringSort = true;
@@ -33,7 +36,13 @@ namespace zPlayer.App.Views
         }
 
         public void RefreshAlbums() {
-            AlbumsGrid.ItemsSource = ApplySorting();
+            HashSet<Guid> selectedIds = AlbumsGrid.SelectedItems.OfType<Album>().Select(album => album.Id).ToHashSet();
+            List<object> items = ApplySorting();
+            AlbumsGrid.ItemsSource = items;
+
+            foreach (Album album in items.OfType<Album>()) {
+                if (selectedIds.Contains(album.Id)) AlbumsGrid.SelectedItems.Add(album);
+            }
             AlbumsInLibraryText.Text = $"— {library.Albums.Count} in library";
         }
 
@@ -87,32 +96,7 @@ namespace zPlayer.App.Views
             CreateAlbumRequested?.Invoke();
         }
 
-        #region Context menu methods
-        private void PlayAlbum_Click(object sender, RoutedEventArgs e) {
-            return;
-        }
-
-        private void PlayAlbumNext_Click(object sender, RoutedEventArgs e) {
-            return;
-        }
-
-        private void AddAlbumToQueue_Click(object sender, RoutedEventArgs e) {
-            return;
-        }
-
-        private void EditAlbum_Click(object sender, RoutedEventArgs e) {
-            if (AlbumsGrid.SelectedItem is Album album) EditAlbumRequested?.Invoke(album);
-        }
-
-        private void DeleteAlbum_Click(object sender, RoutedEventArgs e) {
-            return;
-        }
-
-        private void AddAlbumSongsToMix_Click(object sender, RoutedEventArgs e) {
-            return;
-        }
-        #endregion
-
+        #region AlbumsGrid event handlers
         private void AlbumsGrid_LeftMouseDown(object sender, MouseButtonEventArgs e) {
             if (e.OriginalSource is DependencyObject source &&
                 ItemsControl.ContainerFromElement(AlbumsGrid, source) is ListBoxItem) {
@@ -121,11 +105,32 @@ namespace zPlayer.App.Views
             AlbumsGrid.UnselectAll();
         }
 
+        private void AlbumsGrid_RightMouseDown(object sender, MouseButtonEventArgs e) {
+            if (e.OriginalSource is DependencyObject source &&
+                    ItemsControl.ContainerFromElement(AlbumsGrid, source) is ListBoxItem { DataContext: Album album }) {
+                if (!AlbumsGrid.SelectedItems.Contains(album)) {
+                    AlbumsGrid.UnselectAll();
+                    AlbumsGrid.SelectedItem = album;
+                }
+                e.Handled = true;
+            }
+            else {
+                AlbumsGrid.UnselectAll();
+                e.Handled = true;
+            }
+        }
+
+        private void AlbumsGrid_ContextMenuOpening(object sender, ContextMenuEventArgs e) {
+            if (!AlbumsGrid.SelectedItems.OfType<Album>().Any()) e.Handled = true;
+            CommandManager.InvalidateRequerySuggested();
+        }
+
         private void AlbumsGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e) {
             if (e.OriginalSource is not DependencyObject source) return;
             if (ItemsControl.ContainerFromElement(AlbumsGrid, source) is ListBoxItem { DataContext: Album album }) {
                 AlbumOpened?.Invoke(album);
             }
         }
+        #endregion
     }
 }
