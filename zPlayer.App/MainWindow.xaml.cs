@@ -78,6 +78,10 @@ namespace zPlayer.App
                 library.AddAlbum(album);
             }
             library.AddSongs(database.LoadSongs());
+
+            foreach (Mix mix in database.LoadMixes()) {
+                library.AddMix(mix);
+            }
         }
 
         private void InitMediaKeys() {

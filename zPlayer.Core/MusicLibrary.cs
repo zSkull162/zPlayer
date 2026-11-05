@@ -6,10 +6,14 @@ namespace zPlayer.Core
     {
         private readonly ObservableCollection<Song> songs = [];
         private readonly List<Album> albums = [];
+        private readonly List<Mix> mixes = [];
+
         public ReadOnlyObservableCollection<Song> Songs { get; }
         public IReadOnlyList<Album> Albums => albums;
+        public IReadOnlyList<Mix> Mixes => mixes;
 
         public List<Album> GetAlbums() => albums.OrderBy(a => a.Title).ToList();
+        public List<Mix> GetMixes() => mixes.OrderBy(mix => mix.Title, StringComparer.OrdinalIgnoreCase).ToList();
 
         public MusicLibrary() {
             Songs = new(songs);
@@ -18,7 +22,46 @@ namespace zPlayer.Core
         public void Clear() {
             songs.Clear();
             albums.Clear();
+            mixes.Clear();
         }
+
+        #region Mix Methods
+        public Mix? GetMix(Guid mixId) => mixes.FirstOrDefault(mix => mix.Id == mixId);
+
+        public bool AddMix(Mix mix) {
+            if (mixes.Any(existing => existing.Id == mix.Id)) return false;
+            mixes.Add(mix);
+            return true;
+        }
+
+        public bool RemoveMix(Guid mixId) {
+            return mixes.RemoveAll(mix => mix.Id == mixId) > 0;
+        }
+
+        public Song[] GetMixSongs(Guid mixId) {
+            Mix? mix = GetMix(mixId);
+            if (mix == null) return [];
+
+            Dictionary<Guid, Song> available = songs.ToDictionary(song => song.Id);
+            IEnumerable<MixSong> entries = mix.Entries.Where(entry => available.ContainsKey(entry.SongId));
+
+            IOrderedEnumerable<MixSong> OrderBy<T>(Func<MixSong, T> selector, IComparer<T>? comparer = null) {
+                return mix.SortDescending ? entries.OrderByDescending(selector, comparer) : entries.OrderBy(selector, comparer);
+            }
+
+            IOrderedEnumerable<MixSong> sorted = mix.SortType switch {
+                MixSortType.Title => OrderBy(entry => available[entry.SongId].Title, StringComparer.OrdinalIgnoreCase),
+                MixSortType.Artist => OrderBy(entry => available[entry.SongId].Artist, StringComparer.OrdinalIgnoreCase),
+                MixSortType.Album => OrderBy(entry => available[entry.SongId].AlbumTitle, StringComparer.OrdinalIgnoreCase),
+                MixSortType.Length => OrderBy(entry => available[entry.SongId].Duration),
+                MixSortType.TimeAdded => OrderBy(entry => entry.AddedAt),
+                _ => OrderBy(entry => entry.Position)
+            };
+
+            return sorted.ThenBy(entry => entry.Position).ThenBy(entry => entry.SongId)
+                .Select(entry => available[entry.SongId]).ToArray();
+        }
+        #endregion
 
         #region Album Methods
         public Album CreateAlbum(string title, string artist) {
@@ -123,6 +166,9 @@ namespace zPlayer.Core
 
             foreach (Album album in albums) {
                 album.Songs.RemoveAll(s => s.Id == songId);
+            }
+            foreach (Mix mix in mixes) {
+                mix.RemoveSongs([songId]);
             }
             return songs.Remove(song);
         }

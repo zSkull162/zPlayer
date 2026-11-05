@@ -13,7 +13,10 @@ namespace zPlayer.Infrastructure.Storage
             Directory.CreateDirectory(folder);
 
             string databasePath = Path.Combine(folder, "library.db");
-            connectionString = new SqliteConnectionStringBuilder { DataSource = databasePath }.ToString();
+            connectionString = new SqliteConnectionStringBuilder {
+                DataSource = databasePath,
+                ForeignKeys = true
+            }.ToString();
         }
 
         public void Initalize() {
@@ -49,6 +52,26 @@ namespace zPlayer.Infrastructure.Storage
                         Id INTEGER PRIMARY KEY CHECK (Id = 1),
                         Volume REAL NOT NULL
                     );
+
+                    CREATE TABLE IF NOT EXISTS Mixes (
+                        Id TEXT PRIMARY KEY,
+                        Title TEXT NOT NULL,
+                        SortType INTEGER NOT NULL DEFAULT 5,
+                        SortDescending INTEGER NOT NULL DEFAULT 0
+                    );
+
+                    CREATE TABLE IF NOT EXISTS MixSongs (
+                        MixId TEXT NOT NULL,
+                        SongId TEXT NOT NULL,
+                        Position INTEGER NOT NULL CHECK(Position >= 0),
+                        AddedUtcTicks INTEGER NOT NULL,
+                        PRIMARY KEY (MixId, SongId),
+                        UNIQUE (MixId, Position),
+                        FOREIGN KEY (MixId) REFERENCES Mixes(Id) ON DELETE CASCADE,
+                        FOREIGN KEY (SongId) REFERENCES Songs(Id) ON DELETE CASCADE
+                    );
+
+                    CREATE INDEX IF NOT EXISTS IX_MixSongs_SongId ON MixSongs(SongId);
                 """;
                 command.ExecuteNonQuery();
             }
@@ -64,6 +87,8 @@ namespace zPlayer.Infrastructure.Storage
 
             command.Transaction = transaction;
             command.CommandText = """
+                DELETE FROM MixSongs;
+                DELETE FROM Mixes;
                 DELETE FROM Songs;
                 DELETE FROM Albums;
             """;
@@ -100,6 +125,136 @@ namespace zPlayer.Infrastructure.Storage
             command.Parameters.AddWithValue( "$volume", Math.Clamp(volume, 0, 1));
             command.ExecuteNonQuery();
         }
+
+        #region Save/Load Mix Methods
+        public void SaveMix(Mix mix) => SaveMixes([mix]);
+
+        public void SaveMixes(IEnumerable<Mix> mixes) {
+            Mix[] drafts = mixes.Select(mix => mix.Clone()).ToArray();
+
+            if (drafts.Select(mix => mix.Id).Distinct().Count() != drafts.Length) {
+                throw new ArgumentException("The same mix cannot be saved twice in one batch.", nameof(mixes));
+            }
+
+            foreach (Mix mix in drafts) {
+                if (mix.Id == Guid.Empty || string.IsNullOrWhiteSpace(mix.Title)) {
+                    throw new ArgumentException("Each mix needs an ID and title.", nameof(mixes));
+                }
+                if (mix.Entries.Any(entry => entry.SongId == Guid.Empty || entry.Position < 0) ||
+                    mix.Entries.Select(entry => entry.SongId).Distinct().Count() != mix.Entries.Count ||
+                    mix.Entries.Select(entry => entry.Position).Distinct().Count() != mix.Entries.Count) {
+                    throw new ArgumentException("Mix songs must have valid IDs and unique, nonnegative positions.", nameof(mixes));
+                }
+            }
+
+            using SqliteConnection connection = new(connectionString);
+            connection.Open();
+            using SqliteTransaction transaction = connection.BeginTransaction();
+
+            foreach (Mix mix in drafts) {
+                using (SqliteCommand command = connection.CreateCommand()) {
+                    command.Transaction = transaction;
+                    command.CommandText = """
+                        INSERT INTO Mixes (Id, Title, SortType, SortDescending)
+                        VALUES ($id, $title, $sortType, $sortDescending)
+                        ON CONFLICT(Id) DO UPDATE SET
+                            Title = excluded.Title,
+                            SortType = excluded.SortType,
+                            SortDescending = excluded.SortDescending;
+                    """;
+                    command.Parameters.AddWithValue("$id", mix.Id.ToString());
+                    command.Parameters.AddWithValue("$title", mix.Title);
+                    command.Parameters.AddWithValue("sortType", (int)mix.SortType);
+                    command.Parameters.AddWithValue("$sortDescending", mix.SortDescending ? 1 : 0);
+                    command.ExecuteNonQuery();
+                }
+
+                using (SqliteCommand command = connection.CreateCommand()) {
+                    command.Transaction = transaction;
+                    command.CommandText = "DELETE FROM MixSongs WHERE MixId = $mixId;";
+                    command.Parameters.AddWithValue("$mixId", mix.Id.ToString());
+                    command.ExecuteNonQuery();
+                }
+
+                using (SqliteCommand command = connection.CreateCommand()) {
+                    command.Transaction = transaction;
+                    command.CommandText = """
+                        INSERT INTO MixSongs (MixId, SongId, Position, AddedUtcTicks)
+                        VALUES ($mixId, $songId, $position, $addedUtcTicks);
+                    """;
+
+                    command.Parameters.AddWithValue("$mixId", mix.Id.ToString());
+                    SqliteParameter songId = command.Parameters.Add("$songId", SqliteType.Text);
+                    SqliteParameter position = command.Parameters.Add("$position", SqliteType.Integer);
+                    SqliteParameter addedAt = command.Parameters.Add("$addedUtcTicks", SqliteType.Integer);
+
+                    foreach (MixSong entry in mix.Entries) {
+                        songId.Value = entry.SongId.ToString();
+                        position.Value = entry.Position;
+                        addedAt.Value = entry.AddedAt.UtcDateTime.Ticks;
+                        command.ExecuteNonQuery();
+                    }
+                }
+            }
+            transaction.Commit();
+        }
+
+        public List<Mix> LoadMixes() {
+            List<Mix> mixes = [];
+            Dictionary<Guid, Mix> lookup = [];
+
+            using SqliteConnection connection = new(connectionString);
+            connection.Open();
+            using SqliteCommand command = connection.CreateCommand();
+
+            command.CommandText = """
+                SELECT m.Id, m.Title, ms.SongId, ms.Position, ms.AddedUtcTicks,
+                m.SortType, m.SortDescending
+                FROM Mixes AS m
+                LEFT JOIN MixSongs AS ms ON ms.MixId = m.Id
+                ORDER BY m.Title COLLATE NOCASE, m.Id, ms.Position;
+            """;
+
+            using SqliteDataReader reader = command.ExecuteReader();
+            while (reader.Read()) {
+                Guid mixId = Guid.Parse(reader.GetString(0));
+
+                if (!lookup.TryGetValue(mixId, out Mix? mix)) {
+                    mix = new Mix {
+                        Id = mixId,
+                        Title = reader.GetString(1),
+                        SortType = (MixSortType)reader.GetInt32(5),
+                        SortDescending = reader.GetInt32(6) != 0
+                    };
+                    lookup.Add(mixId, mix);
+                    mixes.Add(mix);
+                }
+                if (!reader.IsDBNull(2)) {
+                    mix.Entries.Add(new MixSong(Guid.Parse(reader.GetString(2)), reader.GetInt32(3), new DateTimeOffset(reader.GetInt64(4), TimeSpan.Zero)));
+                }
+            }
+            return mixes;
+        }
+
+        public void DeleteMix(Guid mixId) => DeleteMixes([mixId]);
+
+        public void DeleteMixes(IEnumerable<Guid> mixIds) {
+            using SqliteConnection connection = new(connectionString);
+            connection.Open();
+            using SqliteTransaction transaction = connection.BeginTransaction();
+            using SqliteCommand command = connection.CreateCommand();
+
+            command.Transaction = transaction;
+            command.CommandText = "DELETE FROM Mixes WHERE Id = $id;";
+            SqliteParameter id = command.Parameters.Add("$id", SqliteType.Text);
+
+            foreach (Guid mixId in mixIds.Distinct()) {
+                id.Value = mixId.ToString();
+                command.ExecuteNonQuery();
+            }
+            transaction.Commit();
+        }
+        #endregion
 
         #region Save/Load Album Methods
         public void DeleteAlbum(Guid albumId) {
