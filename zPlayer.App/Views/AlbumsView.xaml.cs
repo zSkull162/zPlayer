@@ -11,14 +11,23 @@ namespace zPlayer.App.Views
     public partial class AlbumsView : UserControl
     {
         private readonly MusicLibrary library;
+        private readonly SortState sortState;
+        private bool restoringSort;
 
         public event Action<Album>? AlbumOpened;
         public event Action? CreateAlbumRequested;
         public event Action<Album>? EditAlbumRequested;
 
-        public AlbumsView(MusicLibrary library) {
+        public AlbumsView(MusicLibrary library, SortState sortState) {
             this.library = library;
+            this.sortState = sortState;
+            restoringSort = true;
             InitializeComponent();
+            
+            SortTypeBox.SelectedIndex = sortState.TypeIndex;
+            SortOrderBox.SelectedIndex = sortState.OrderIndex;
+
+            restoringSort = false;
             DataContext = library;
             RefreshAlbums();
         }
@@ -28,6 +37,7 @@ namespace zPlayer.App.Views
             AlbumsInLibraryText.Text = $"— {library.Albums.Count} in library";
         }
 
+        #region Filtering and sorting
         private List<object> ApplySorting() {
             string search = AlbumSearchBox.Text.Trim();
             bool descending = SortOrderBox.SelectedIndex == 1;
@@ -61,7 +71,9 @@ namespace zPlayer.App.Views
         }
 
         private void SortBox_SelectionChanged(object sender, SelectionChangedEventArgs e) {
-            if (!IsInitialized) return;
+            if (restoringSort || !IsInitialized) return;
+            sortState.TypeIndex = SortTypeBox.SelectedIndex;
+            sortState.OrderIndex = SortOrderBox.SelectedIndex;
             RefreshAlbums();
         }
 
@@ -69,6 +81,7 @@ namespace zPlayer.App.Views
             if (!IsInitialized) return;
             RefreshAlbums();
         }
+        #endregion
 
         private void CreateAlbum_Click(object sender, RoutedEventArgs e) {
             CreateAlbumRequested?.Invoke();

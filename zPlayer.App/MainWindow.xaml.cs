@@ -30,7 +30,9 @@ namespace zPlayer.App
         private readonly ArtworkConverter converter = new();
         private readonly MusicLibrary library = new();
         private readonly MediaKeyListener? mediaKeys;
+
         private readonly SongCommands songCommands;
+        private readonly ViewState viewState = new();
 
         private readonly DispatcherTimer volumeCloseTimer = new() {
             Interval = TimeSpan.FromMilliseconds(125)
@@ -277,12 +279,12 @@ namespace zPlayer.App
         private void NavigateToPage(string tag) {
             switch (tag) {
                 default:
-                    SongsView songView = new SongsView(library, songCommands);
+                    SongsView songView = new SongsView(library, songCommands, viewState.SongsSort);
                     songView.ImportSongsRequested += ImportSongs;
                     MainContent.Content = songView;
                     break;
                 case "Albums":
-                    AlbumsView albumView = new(library);
+                    AlbumsView albumView = new(library, viewState.AlbumsSort);
                     albumView.AlbumOpened += OpenAlbumDetails;
                     albumView.CreateAlbumRequested += ShowCreateAlbum;
                     albumView.EditAlbumRequested += ShowEditAlbum;

@@ -13,20 +13,30 @@ namespace zPlayer.App.Views
     {
         public event Action? ImportSongsRequested;
         public SongCommands Commands { get; }
+        private readonly SortState sortState;
+        bool restoringSort;
+
         private ICollectionView? songsView;
 
-        public SongsView(MusicLibrary library, SongCommands commands) {
+        public SongsView(MusicLibrary library, SongCommands commands, SortState sortState) {
             Commands = commands;
+            this.sortState = sortState;
+            restoringSort = true;
             InitializeComponent();
             DataContext = library;
+
+            SortTypeBox.SelectedIndex = sortState.TypeIndex;
+            SortOrderBox.SelectedIndex = sortState.OrderIndex;
 
             songsView = CollectionViewSource.GetDefaultView(library.Songs);
             songsView.Filter = FilterSong;
 
+            restoringSort = false;
             ApplySorting();
             SongsInLibraryText.Text = $"— {library.Songs.Count} in library";
         }
 
+        #region Filtering and sorting
         private bool FilterSong(object item) {
             if (item is not Song song) return true;
             string search = SongSearchBox.Text.Trim();
@@ -64,13 +74,16 @@ namespace zPlayer.App.Views
         }
 
         private void SortBox_SelectionChanged(object sender, SelectionChangedEventArgs e) {
-            if (songsView == null) return;
+            if (restoringSort || songsView == null) return;
+            sortState.TypeIndex = SortTypeBox.SelectedIndex;
+            sortState.OrderIndex = SortOrderBox.SelectedIndex;
             ApplySorting();
         }
 
         private void SongSearchBox_TextChanged(object sender, TextChangedEventArgs e) {
             songsView?.Refresh();
         }
+        #endregion
 
         private void ImportSongs_Click(object sender, RoutedEventArgs e) {
             ImportSongsRequested?.Invoke();
