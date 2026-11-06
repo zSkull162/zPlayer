@@ -57,7 +57,8 @@ namespace zPlayer.Infrastructure.Storage
                         Id TEXT PRIMARY KEY,
                         Title TEXT NOT NULL,
                         SortType INTEGER NOT NULL DEFAULT 5,
-                        SortDescending INTEGER NOT NULL DEFAULT 0
+                        SortDescending INTEGER NOT NULL DEFAULT 0,
+                        CustomArtwork BLOB
                     );
 
                     CREATE TABLE IF NOT EXISTS MixSongs (
@@ -155,17 +156,19 @@ namespace zPlayer.Infrastructure.Storage
                 using (SqliteCommand command = connection.CreateCommand()) {
                     command.Transaction = transaction;
                     command.CommandText = """
-                        INSERT INTO Mixes (Id, Title, SortType, SortDescending)
-                        VALUES ($id, $title, $sortType, $sortDescending)
+                        INSERT INTO Mixes (Id, Title, SortType, SortDescending, CustomArtwork)
+                        VALUES ($id, $title, $sortType, $sortDescending, $artwork)
                         ON CONFLICT(Id) DO UPDATE SET
                             Title = excluded.Title,
                             SortType = excluded.SortType,
-                            SortDescending = excluded.SortDescending;
+                            SortDescending = excluded.SortDescending,
+                            CustomArtwork = excluded.CustomArtwork;
                     """;
                     command.Parameters.AddWithValue("$id", mix.Id.ToString());
                     command.Parameters.AddWithValue("$title", mix.Title);
                     command.Parameters.AddWithValue("sortType", (int)mix.SortType);
                     command.Parameters.AddWithValue("$sortDescending", mix.SortDescending ? 1 : 0);
+                    command.Parameters.AddWithValue("$artwork", (object?)mix.CustomArtwork ?? DBNull.Value);
                     command.ExecuteNonQuery();
                 }
 
@@ -209,7 +212,7 @@ namespace zPlayer.Infrastructure.Storage
 
             command.CommandText = """
                 SELECT m.Id, m.Title, ms.SongId, ms.Position, ms.AddedUtcTicks,
-                m.SortType, m.SortDescending
+                m.SortType, m.SortDescending, m.CustomArtwork
                 FROM Mixes AS m
                 LEFT JOIN MixSongs AS ms ON ms.MixId = m.Id
                 ORDER BY m.Title COLLATE NOCASE, m.Id, ms.Position;
@@ -224,7 +227,8 @@ namespace zPlayer.Infrastructure.Storage
                         Id = mixId,
                         Title = reader.GetString(1),
                         SortType = (MixSortType)reader.GetInt32(5),
-                        SortDescending = reader.GetInt32(6) != 0
+                        SortDescending = reader.GetInt32(6) != 0,
+                        CustomArtwork = reader.IsDBNull(7) ? null : (byte[])reader.GetValue(7)
                     };
                     lookup.Add(mixId, mix);
                     mixes.Add(mix);

@@ -7,7 +7,7 @@
              xmlns:local="clr-namespace:zPlayer.App.Views"
              xmlns:converters="clr-namespace:zPlayer.App.Converters"
              mc:Ignorable="d" 
-             Height="620" Width="1030">
+             d:DesignHeight="620" d:DesignWidth="1030">
     <UserControl.Resources>
         <converters:ArtworkConverter x:Key="ArtworkConverter"/>
         <Style TargetType="TextBlock" x:Key="AlbumTitle">
@@ -36,7 +36,7 @@
 
         <!--View Header-->
         <Border Grid.Row="0" Style="{StaticResource PanelTop}">
-            <Grid Grid.Row="0">
+            <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="180"/>
@@ -113,7 +113,7 @@
                         </MenuItem.Icon>
                     </MenuItem>
                     <Separator Style="{StaticResource RoundedSeparator}"/>
-                    <MenuItem Header="Add Songs to Mix">
+                    <MenuItem Header="Add Songs to Mix" Command="{Binding Tag.AddAlbumSongsToMixCommand}" CommandParameter="{Binding}">
                         <MenuItem.Icon>
                             <Image Source="/Assets/Icons/MixAdd_32x.png"/>
                         </MenuItem.Icon>

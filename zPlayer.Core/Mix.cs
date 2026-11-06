@@ -14,11 +14,28 @@ namespace zPlayer.Core
     {
         public Guid Id { get; set; } = Guid.NewGuid();
         public string Title { get; set; } = "New Mix";
+
         public MixSortType SortType { get; set; } = MixSortType.TimeAdded;
         public bool SortDescending { get; set; }
+
         public List<MixSong> Entries { get; set; } = [];
+        private Song[] resolvedSongs = [];
+        public IReadOnlyList<Song> Songs => resolvedSongs;
+
+        public byte[]? CustomArtwork { get; set; }
+        public byte[]? Artwork => CustomArtwork is { Length: > 0 } ? CustomArtwork
+            : resolvedSongs.FirstOrDefault(song => song.Artwork is { Length: > 0 })?.Artwork;
 
         public int SongCount => Entries.Count;
+        public TimeSpan Duration => TimeSpan.FromTicks(resolvedSongs.Sum(song => song.Duration.Ticks));
+
+        public void RefreshSongs(IEnumerable<Song> librarySongs) {
+            Dictionary<Guid, Song> available = librarySongs.ToDictionary(song => song.Id);
+
+            resolvedSongs = Entries.OrderBy(entry => entry.Position)
+                .Where(entry => available.ContainsKey(entry.SongId))
+                .Select(entry => available[entry.SongId]).ToArray();
+        }
 
         public int AddSongs(IEnumerable<Guid> songIds) {
             HashSet<Guid> existing = Entries.Select(entry => entry.SongId).ToHashSet();
@@ -64,7 +81,9 @@ namespace zPlayer.Core
                 Title = Title,
                 SortType = SortType,
                 SortDescending = SortDescending,
-                Entries = [.. Entries]
+                CustomArtwork = CustomArtwork?.ToArray(),
+                Entries = [.. Entries],
+                resolvedSongs = [.. resolvedSongs]
             };
         }
     }

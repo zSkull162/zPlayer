@@ -7,7 +7,7 @@
              xmlns:local="clr-namespace:zPlayer.App.Views"
              xmlns:converters="clr-namespace:zPlayer.App.Converters"
              mc:Ignorable="d" 
-             Height="620" Width="1030">
+             d:DesignHeight="620" d:DesignWidth="1030">
     <UserControl.Resources>
         <converters:ArtworkConverter x:Key="ArtworkConverter"/>
         <Style TargetType="TextBlock" x:Key="MixTitle">
@@ -28,7 +28,7 @@
 
         <!--View Header-->
         <Border Grid.Row="0" Style="{StaticResource PanelTop}">
-            <Grid Grid.Row="0">
+            <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="180"/>
@@ -55,9 +55,9 @@
                     </ComboBox>
                 </StackPanel>
 
-                <TextBox x:Name="MixSearchBox" TextChanged="MixSearchBox_TextChanged"
+                <TextBox x:Name="MixSearchBox" TextChanged="MixSearchBox_TextChanged" Grid.Column="1"
                         Style="{StaticResource SearchBox}" Tag="Search Mixes..." FontSize="12"
-                        Grid.Column="1" Width="180" HorizontalAlignment="Right"/>
+                        Width="180" HorizontalAlignment="Right"/>
             </Grid>
         </Border>
 
@@ -94,7 +94,7 @@
                         </MenuItem.Icon>
                     </MenuItem>
                     <Separator Style="{StaticResource RoundedSeparator}"/>
-                    <MenuItem Header="Edit Info" Command="{Binding Tag.EditMixCommand}" CommandParameter="{Binding}">
+                    <MenuItem Header="Edit Info" Command="{Binding Tag.EditMixCommand}" CommandParameter="{Binding Tag.SingleSelectedMix}">
                         <MenuItem.Icon>
                             <Image Source="/Assets/Icons/Edit_32x.png"/>
                         </MenuItem.Icon>

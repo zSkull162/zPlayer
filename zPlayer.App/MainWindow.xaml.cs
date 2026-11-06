@@ -1,4 +1,5 @@
-﻿using Microsoft.Win32;
+﻿#region Namespaces
+using Microsoft.Win32;
 using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -19,11 +20,13 @@ using zPlayer.App.Views;
 using zPlayer.Core;
 using zPlayer.Infrastructure;
 using zPlayer.Infrastructure.Storage;
+#endregion
 
 namespace zPlayer.App
 {
     public partial class MainWindow : Window
     {
+        #region Fields
         private readonly AudiofileMetadataReader metadataReader = new();
         private readonly MusicLibraryDatabase database = new();
         private readonly PlaybackController player = new();
@@ -33,6 +36,7 @@ namespace zPlayer.App
 
         private readonly SongCommands songCommands;
         private readonly AlbumCommands albumCommands;
+        private readonly MixCommands mixCommands;
         private readonly ViewState viewState = new();
 
         private readonly DispatcherTimer volumeCloseTimer = new() {
@@ -50,10 +54,12 @@ namespace zPlayer.App
         private bool queueOpen;
         private const double QueueCollapsedWidth = 0;
         private const double QueueExpandedWidth = 320;
+        #endregion
 
         public MainWindow() {
-            songCommands = new(player, ShowEditSongs, DeleteSongs, ShowMoveSongsToAlbum);
+            songCommands = new(player, ShowEditSongs, DeleteSongs, ShowMoveSongsToAlbum, ShowAddSongsToMix);
             albumCommands = new(player, ShowEditAlbums, DeleteAlbums);
+            mixCommands = new(library, player, ShowEditMix, DeleteMixes);
 
             InitializeComponent();
             InitDatabase();
@@ -82,6 +88,7 @@ namespace zPlayer.App
             foreach (Mix mix in database.LoadMixes()) {
                 library.AddMix(mix);
             }
+            library.RefreshMixes();
         }
 
         private void InitMediaKeys() {
@@ -294,6 +301,12 @@ namespace zPlayer.App
                     albumView.AlbumOpened += OpenAlbumDetails;
                     albumView.CreateAlbumRequested += ShowCreateAlbum;
                     MainContent.Content = albumView;
+                    break;
+                case "Mixes":
+                    MixesView mixesView = new(library, mixCommands, viewState.MixesSort);
+                    mixesView.MixOpened += OpenMixDetails;
+                    mixesView.CreateMixRequested += ShowCreateMix;
+                    MainContent.Content = mixesView;
                     break;
             }
         }
@@ -587,6 +600,68 @@ namespace zPlayer.App
             };
             OpenPopup(view);
         }
+
+        private void ShowCreateMix() {
+            CreateMixView view = new();
+            view.CloseRequested += ClosePopup;
+            view.CreateRequested += mix => {
+                try {
+                    database.SaveMix(mix);
+                }
+                catch (Exception ex) {
+                    MessageBox.Show(this, ex.Message, "Create Mix Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+                library.AddMix(mix);
+                RefreshMixViews();
+                ClosePopup();
+            };
+            OpenPopup(view);
+        }
+
+        private void ShowEditMix(Mix mix) {
+            EditMixView view = new(library, mix);
+            view.CloseRequested += ClosePopup;
+            view.SaveRequested += draft => {
+                try {
+                    database.SaveMix(draft);
+                }
+                catch (Exception ex) {
+                    MessageBox.Show(this, ex.Message, "Save Mix Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+                ApplyMixDraft(mix, draft);
+                RefreshMixViews();
+                ClosePopup();
+            };
+            OpenPopup(view);
+        }
+
+        private void ShowAddSongsToMix(Song[] songs) {
+            if (library.Mixes.Count == 0) {
+                MessageBox.Show(this, "Create a mix first.", "Add to Mix", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            AddToMixView view = new(library.GetMixes());
+            view.CloseRequested += ClosePopup;
+            view.AddRequested += mix => {
+                Mix draft = mix.Clone();
+                draft.AddSongs(songs.Select(song => song.Id));
+
+                try {
+                    database.SaveMix(draft);
+                }
+                catch (Exception ex) {
+                    MessageBox.Show(this, ex.Message, "Add to Mix Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+                ApplyMixDraft(mix, draft);
+                RefreshMixViews();
+                ClosePopup();
+            };
+            OpenPopup(view);
+        }
         #endregion
 
         private void OpenAlbumDetails(Album album) {
@@ -600,6 +675,63 @@ namespace zPlayer.App
             detailsView.SongOrderRequested += SaveAlbumSongOrder;
 
             MainContent.Content = detailsView;
+        }
+
+        private void OpenMixDetails(Mix mix) {
+            MixDetailsView view = new(library, mix, songCommands);
+
+            view.BackRequested += () => NavigateToPage("Mixes");
+            view.PlayRequested += songs => player.PlayQueue(songs);
+            view.AddToQueueRequested += player.AddToQueue;
+            view.InsertNextRequested += player.InsertNext;
+            view.EditMixRequested += ShowEditMix;
+
+            view.SortRequested += (type, descending) => {
+                Mix draft = mix.Clone();
+                draft.SortType = type;
+                draft.SortDescending = descending;
+                try {
+                    database.SaveMix(draft);
+                }
+                catch (Exception ex) {
+                    MessageBox.Show(this, ex.Message, "Sort Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+                ApplyMixDraft(mix, draft);
+            };
+
+            view.SongOrderRequested += (selected, reordered) => {
+                Guid[] ids = reordered.Select(song => song.Id).ToArray();
+                if (selected.SortDescending) Array.Reverse(ids);
+
+                Mix draft = selected.Clone();
+                draft.SetOrder(ids);
+                try {
+                    database.SaveMix(draft);
+                }
+                catch (Exception ex) {
+                    MessageBox.Show(this, ex.Message, "Reorder Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+                ApplyMixDraft(selected, draft);
+                view.RefreshView();
+            };
+
+            view.RemoveSongsRequested += songs => {
+                Mix draft = mix.Clone();
+                draft.RemoveSongs(songs.Select(song => song.Id));
+
+                try {
+                    database.SaveMix(draft);
+                }
+                catch (Exception ex) {
+                    MessageBox.Show(this, ex.Message, "Remove Songs Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+                ApplyMixDraft(mix, draft);
+                view.RefreshView();
+            };
+            MainContent.Content = view;
         }
 
         #region Delete/Save methods
@@ -688,6 +820,31 @@ namespace zPlayer.App
                 album.Songs.AddRange(library.Songs.Where(song => song.AlbumId == album.Id).OrderBy(song => song.AlbumPosIndex));
             }
         }
+
+        private void DeleteMixes(Mix[] mixes) {
+            if (MessageBox.Show(this, $"Delete {mixes.Length} selected mix(es)?", "Delete Mixes", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
+
+            try {
+                database.DeleteMixes(mixes.Select(mix => mix.Id));
+            }
+            catch (Exception ex) {
+                MessageBox.Show(this, ex.Message, "Delete Mix Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+            foreach (Mix mix in mixes) {
+                library.RemoveMix(mix.Id);
+            }
+            RefreshMixViews();
+        }
+
+        private void ApplyMixDraft(Mix original, Mix draft) {
+            original.Title = draft.Title;
+            original.CustomArtwork = draft.CustomArtwork?.ToArray();
+            original.SortType = draft.SortType;
+            original.SortDescending = draft.SortDescending;
+            original.Entries = [.. draft.Entries];
+            original.RefreshSongs(library.Songs);
+        }
         #endregion
 
         private void RefreshAfterSongEdit() {
@@ -699,6 +856,14 @@ namespace zPlayer.App
             }
             CollectionViewSource.GetDefaultView(library.Songs).Refresh();
             UpdatePlaybackUI();
+            RefreshMixViews();
+        }
+
+        private void RefreshMixViews() {
+            library.RefreshMixes();
+
+            if (MainContent.Content is MixesView mixesView) mixesView.RefreshMixes();
+            else if (MainContent.Content is MixDetailsView detailsView) detailsView.RefreshView();
         }
 
         #region Popup methods

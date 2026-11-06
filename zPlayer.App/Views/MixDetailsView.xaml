@@ -1,0 +1,240 @@
+﻿<UserControl x:Class="zPlayer.App.Views.MixDetailsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:zPlayer.App.Views"
+             xmlns:converters="clr-namespace:zPlayer.App.Converters"
+             mc:Ignorable="d" 
+             d:DesignHeight="620" d:DesignWidth="1030">
+    <UserControl.Resources>
+        <converters:ArtworkConverter x:Key="ArtworkConverter"/>
+        <Style TargetType="TextBlock" x:Key="MixTitle">
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+            <Setter Property="Padding" Value="6,0,0,0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+        </Style>
+        <Style TargetType="TextBlock" x:Key="MixInfo">
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+            <Setter Property="Padding" Value="6,6,0,0"/>
+            <Setter Property="VerticalAlignment" Value="Top"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="Opacity" Value="0.3"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="24"/>
+            <RowDefinition Height="160"/>
+            <RowDefinition Height="24"/>
+            <RowDefinition Height="24"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!--View Header-->
+        <Border Grid.Row="0" Style="{StaticResource PanelTop}">
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="26"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="26"/>
+                </Grid.ColumnDefinitions>
+                <Button Click="BackButton_Click" Style="{StaticResource IconButton}"
+                        HorizontalAlignment="Left" Grid.Column="0" Opacity="0.5">
+                    <Image Source="/Assets/Icons/ArrowBack_32x.png" Margin="3"/>
+                </Button>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
+                    <TextBlock Text="Mix Details" Padding="0,0,4,0"
+                            Style="{StaticResource WindowTitle}"/>
+                    <TextBlock x:Name="MixTitleText" Text="— MixTitle" TextTrimming="CharacterEllipsis"
+                            Style="{StaticResource WindowTitle}" FontWeight="Normal" Opacity="0.5"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!--Mix Info-->
+        <Border Grid.Row="1" Style="{StaticResource Panel}" CornerRadius="3" Margin="2">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="150"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="36"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="36"/> <!--Title-->
+                    <RowDefinition Height="24"/> <!--Info-->
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="40"/> <!--Actions-->
+                </Grid.RowDefinitions>
+
+                <Border CornerRadius="3" Grid.Column="0" Grid.RowSpan="4">
+                    <Border.Background>
+                        <ImageBrush ImageSource="{Binding Artwork, Converter={StaticResource ArtworkConverter}}" Stretch="UniformToFill"/>
+                    </Border.Background>
+                </Border>
+
+                <TextBlock Text="{Binding Title}" Style="{StaticResource MixTitle}" Grid.Column="1"/>
+
+                <TextBlock x:Name="MixInfoText" Text="000 Songs — 00:00"
+                        Style="{StaticResource MixInfo}" Grid.Column="1" Grid.Row="1"/>
+
+                <StackPanel Orientation="Horizontal" Grid.Row="3" Grid.Column="1">
+                    <Button Click="PlayMix_Click" Style="{StaticResource IconButton}"
+                            HorizontalAlignment="Left" Margin="6" ToolTip="Play and replace queue">
+                        <Image Source="/Assets/Icons/Play_32x.png"/>
+                    </Button>
+                    <Button Click="AddToQueue_Click" Style="{StaticResource IconButton}"
+                            HorizontalAlignment="Left" Margin="6" ToolTip="Add songs to queue">
+                        <Image Source="/Assets/Icons/QueueAdd_32x.png"/>
+                    </Button>
+                    <Button Click="InsertInQueue_Click" Style="{StaticResource IconButton}"
+                            HorizontalAlignment="Left" Margin="6" ToolTip="Add songs to queue after current song">
+                        <Image Source="/Assets/Icons/QueueNext_32x.png"/>
+                    </Button>
+                </StackPanel>
+
+                <Button Click="EditMix_Click" Style="{StaticResource IconButton}"
+                        HorizontalAlignment="Right" Grid.Column="2" Margin="6">
+                    <Image Source="/Assets/Icons/Edit_32x.png"/>
+                </Button>
+            </Grid>
+        </Border>
+
+        <!--Songs column headers-->
+        <Grid Grid.Row="2" Margin="3,0,36,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="26"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="100"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="#" HorizontalAlignment="Center"
+                    Style="{StaticResource Header}"/>
+            <TextBlock Grid.Column="1" Text="Title &amp; Artist" HorizontalAlignment="Left" Padding="54,0,0,0"
+                    Style="{StaticResource Header}"/>
+            <TextBlock Grid.Column="2" Text="Length" HorizontalAlignment="Right"
+                    Style="{StaticResource Header}"/>
+        </Grid>
+
+        <!--Sorting options-->
+        <StackPanel Grid.Column="1" Grid.Row="3" Orientation="Horizontal" Margin="6,0">
+            <ComboBox x:Name="SortTypeBox" Style="{StaticResource HeaderComboBox}" MinWidth="90"
+                        SelectionChanged="SortBox_SelectionChanged">
+                <ComboBoxItem Content="Title"/>
+                <ComboBoxItem Content="Artist"/>
+                <ComboBoxItem Content="Album"/>
+                <ComboBoxItem Content="Length"/>
+                <ComboBoxItem Content="Manual Order"/>
+                <ComboBoxItem Content="Time Added"/>
+            </ComboBox>
+
+            <ComboBox x:Name="SortOrderBox" Style="{StaticResource HeaderComboBox}" MinWidth="90" Margin="8,0,0,0"
+                        SelectionChanged="SortBox_SelectionChanged">
+                <ComboBoxItem Content="A-Z"/>
+                <ComboBoxItem Content="Z-A"/>
+            </ComboBox>
+        </StackPanel>
+
+        <!--Songs-->
+        <DataGrid x:Name="MixSongsGrid" Grid.Row="4" Margin="2,4,2,0"
+                Style="{StaticResource SongsGrid}"
+                RowStyle="{StaticResource SongGridRow}"
+                CellStyle="{StaticResource SongGridCell}"
+                Tag="{Binding Commands, RelativeSource={RelativeSource AncestorType={x:Type local:MixDetailsView}}}"
+                PreviewMouseLeftButtonDown="MixSongsGrid_LeftMouseDown"
+                PreviewMouseRightButtonDown="MixSongsGrid_RightMouseDown"
+                ContextMenuOpening="MixSongsGrid_ContextMenuOpening"
+                PreviewMouseMove="MixSongsGrid_PreviewMouseMove"
+                PreviewDragOver="MixSongsGrid_DragOver"
+                PreviewDrop="MixSongsGrid_Drop"
+                CanUserSortColumns="False" AllowDrop="True">
+            <DataGrid.ContextMenu>
+                <ContextMenu Style="{StaticResource RoundedContextMenu}"
+                             DataContext="{Binding PlacementTarget, RelativeSource={RelativeSource Self}}">
+                    <MenuItem Header="Edit Info" Command="{Binding Tag.Commands.EditSongCommand}" CommandParameter="{Binding}">
+                        <MenuItem.Icon>
+                            <Image Source="/Assets/Icons/Edit_32x.png"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <Separator Style="{StaticResource RoundedSeparator}"/>
+                    <MenuItem Header="Move to another Album" Command="{Binding Tag.Commands.MoveSongToAlbumCommand}" CommandParameter="{Binding}">
+                        <MenuItem.Icon>
+                            <Image Source="/Assets/Icons/MoveToAlbum_32x.png"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="Remove from Mix" Command="{Binding Tag.RemoveFromMixCommand}" CommandParameter="{Binding}">
+                        <MenuItem.Icon>
+                            <Image Source="/Assets/Icons/MixAdd_32x.png"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                </ContextMenu>
+            </DataGrid.ContextMenu>
+
+            <DataGrid.Columns>
+                <DataGridTemplateColumn Width="26">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center"
+                                       Foreground="{StaticResource TextBrush}" Opacity="0.5" FontSize="12" Loaded="AlbumIndex_Loaded"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <DataGridTemplateColumn Width="*">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Grid Margin="2,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="44"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Border Width="40" Height="40" CornerRadius="3" ClipToBounds="True">
+                                    <Image Source="{Binding Artwork, Converter={StaticResource ArtworkConverter}}" Stretch="UniformToFill"/>
+                                </Border>
+
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0,0,0">
+                                    <TextBlock Text="{Binding Title}" FontSize="13" FontWeight="SemiBold"
+                                               Foreground="{StaticResource TextBrush}" TextTrimming="CharacterEllipsis"
+                                               ToolTip="{Binding Title}"/>
+                                    <TextBlock Text="{Binding Artist}" FontSize="11" Opacity="0.5"
+                                               Foreground="{StaticResource TextBrush}" TextTrimming="CharacterEllipsis"
+                                               ToolTip="{Binding Artist}"/>
+                                </StackPanel>
+                            </Grid>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <DataGridTemplateColumn Width="100">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Duration, StringFormat={}{0:m\\:ss}}"
+                               VerticalAlignment="Center" HorizontalAlignment="Right"
+                               Margin="0,0,12,0" Foreground="{StaticResource TextBrush}"
+                               Opacity="0.5"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <DataGridTemplateColumn Width="26">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Border Background="Transparent" ToolTip="Drag to reorder"
+                                    Padding="6" Cursor="SizeNS"
+                                    PreviewMouseLeftButtonDown="ReorderHandle_MouseDown">
+                                <Image Source="/Assets/Icons/Reorder_32x.png" Opacity="0.5"/>
+                            </Border>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</UserControl>

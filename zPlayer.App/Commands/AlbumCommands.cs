@@ -13,13 +13,15 @@ namespace zPlayer.App.Commands
         public ICommand AddAlbumsToQueueCommand { get; }
         public ICommand EditAlbumsCommand { get; }
         public ICommand DeleteAlbumsCommand { get; }
+        public ICommand AddAlbumSongsToMixCommand { get; }
 
-        public AlbumCommands(PlaybackController player, Action<Album[]> editAlbums, Action<Album[]> deleteAlbums) {
+        public AlbumCommands(PlaybackController player, Action<Album[]> editAlbums, Action<Album[]> deleteAlbums, Action<Song[]> addSongsToMix) {
             PlayAlbumsCommand = new SelectionCommand<Album>(albums => player.PlayQueue(GetSongs(albums)));
             PlayAlbumsNextCommand = new SelectionCommand<Album>(albums => player.InsertNext(GetSongs(albums)));
             AddAlbumsToQueueCommand = new SelectionCommand<Album>(albums => player.AddToQueue(GetSongs(albums)));
             EditAlbumsCommand = new SelectionCommand<Album>(editAlbums);
             DeleteAlbumsCommand = new SelectionCommand<Album>(deleteAlbums);
+            AddAlbumSongsToMixCommand = new SelectionCommand<Album>(albums => addSongsToMix(GetSongs(albums)));
         }
 
         private static Song[] GetSongs(Album[] albums) {

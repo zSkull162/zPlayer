@@ -26,6 +26,12 @@ namespace zPlayer.Core
         }
 
         #region Mix Methods
+        public void RefreshMixes() {
+            foreach (Mix mix in mixes) {
+                mix.RefreshSongs(songs);
+            }
+        }
+
         public Mix? GetMix(Guid mixId) => mixes.FirstOrDefault(mix => mix.Id == mixId);
 
         public bool AddMix(Mix mix) {

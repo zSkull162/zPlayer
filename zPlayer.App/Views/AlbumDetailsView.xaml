@@ -9,12 +9,6 @@
              d:DesignHeight="620" d:DesignWidth="1030">
     <UserControl.Resources>
         <converters:ArtworkConverter x:Key="ArtworkConverter"/>
-        <Style TargetType="TextBlock" x:Key="WindowTitle">
-            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="FontSize" Value="13"/>
-        </Style>
         <Style TargetType="TextBlock" x:Key="AlbumTitle">
             <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
             <Setter Property="Padding" Value="6,0,0,0"/>
@@ -165,7 +159,7 @@
                             <Image Source="/Assets/Icons/MoveToAlbum_32x.png"/>
                         </MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem Header="Add to Mix">
+                    <MenuItem Header="Add to Mix" Command="{Binding Tag.Commands.AddSongsToMixCommand}" CommandParameter="{Binding}">
                         <MenuItem.Icon>
                             <Image Source="/Assets/Icons/MixAdd_32x.png"/>
                         </MenuItem.Icon>
