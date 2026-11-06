@@ -30,8 +30,10 @@ namespace zPlayer.Core
         public TimeSpan Duration => TimeSpan.FromTicks(resolvedSongs.Sum(song => song.Duration.Ticks));
 
         public void RefreshSongs(IEnumerable<Song> librarySongs) {
-            Dictionary<Guid, Song> available = librarySongs.ToDictionary(song => song.Id);
+            RefreshSongs(librarySongs.ToDictionary(song => song.Id));
+        }
 
+        public void RefreshSongs(IReadOnlyDictionary<Guid, Song> available) {
             resolvedSongs = Entries.OrderBy(entry => entry.Position)
                 .Where(entry => available.ContainsKey(entry.SongId))
                 .Select(entry => available[entry.SongId]).ToArray();

@@ -27,8 +27,11 @@ namespace zPlayer.Core
 
         #region Mix Methods
         public void RefreshMixes() {
+            if (mixes.Count == 0) return;
+
+            Dictionary<Guid, Song> available = songs.ToDictionary(song => song.Id);
             foreach (Mix mix in mixes) {
-                mix.RefreshSongs(songs);
+                mix.RefreshSongs(available);
             }
         }
 

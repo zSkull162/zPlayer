@@ -174,15 +174,21 @@ namespace zPlayer.App
 
             CurrentSongArtwork.Source = converter.Convert(song?.Artwork!, typeof(ImageSource), null!, CultureInfo.CurrentCulture) as ImageSource;
 
+            List<Song> queueSongs = player.GetQueueSongs();
+            bool queueChanged = !QueueList.Items.Cast<Song>().SequenceEqual(queueSongs);
+            bool currentChanged = QueueList.SelectedIndex != player.CurrentQueueIndex;
             updatingQueueSelection = true;
             try {
-                QueueList.ItemsSource = player.GetQueueSongs();
+                if (queueChanged) QueueList.ItemsSource = queueSongs;
                 QueueList.SelectedIndex = player.CurrentQueueIndex;
             }
             finally {
                 updatingQueueSelection = false;
             }
-            if (QueueList.SelectedItem != null) QueueList.ScrollIntoView(QueueList.SelectedItem);
+
+            if ((queueChanged || currentChanged) && QueueList.SelectedItem != null) {
+                QueueList.ScrollIntoView(QueueList.SelectedItem);
+            }
 
             LoopButtonImage.DataContext = new {
                 LoopMode = player.Loop
@@ -705,17 +711,16 @@ namespace zPlayer.App
             view.EditMixRequested += ShowEditMix;
 
             view.SortRequested += (type, descending) => {
-                Mix draft = mix.Clone();
-                draft.SortType = type;
-                draft.SortDescending = descending;
+                if (mix.SortType == type && mix.SortDescending == descending) return;
                 try {
-                    database.SaveMix(draft);
+                    database.SaveMixSorting(mix.Id, type, descending);
                 }
                 catch (Exception ex) {
                     MessageBox.Show(this, ex.Message, "Sort Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
-                ApplyMixDraft(mix, draft);
+                mix.SortType = type;
+                mix.SortDescending = descending;
             };
 
             view.SongOrderRequested += (selected, reordered) => {
@@ -878,10 +883,9 @@ namespace zPlayer.App
         }
 
         private void RefreshMixViews() {
-            library.RefreshMixes();
-
             if (MainContent.Content is MixesView mixesView) mixesView.RefreshMixes();
             else if (MainContent.Content is MixDetailsView detailsView) detailsView.RefreshView();
+            else library.RefreshMixes();
         }
 
         #region Popup methods

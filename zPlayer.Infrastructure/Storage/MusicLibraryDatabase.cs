@@ -240,6 +240,29 @@ namespace zPlayer.Infrastructure.Storage
             return mixes;
         }
 
+        public void SaveMixSorting(Guid mixId, MixSortType sortType, bool descending) {
+            if (!Enum.IsDefined(typeof(MixSortType), sortType)) {
+                throw new ArgumentOutOfRangeException(nameof(sortType));
+            }
+            using SqliteConnection connection = new(connectionString);
+            connection.Open();
+            using SqliteCommand command = connection.CreateCommand();
+
+            command.CommandText = """
+                UPDATE Mixes
+                SET SortType = $sortType, SortDescending = $descending
+                WHERE Id = $id;
+            """;
+
+            command.Parameters.AddWithValue("$id", mixId.ToString());
+            command.Parameters.AddWithValue("$sortType", (int)sortType);
+            command.Parameters.AddWithValue("$descending", descending ? 1 : 0);
+
+            if (command.ExecuteNonQuery() != 1) {
+                throw new InvalidOperationException("The mix no longer exists.");
+            }
+        }
+
         public void DeleteMix(Guid mixId) => DeleteMixes([mixId]);
 
         public void DeleteMixes(IEnumerable<Guid> mixIds) {
