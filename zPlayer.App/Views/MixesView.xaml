@@ -12,7 +12,7 @@
         <converters:ArtworkConverter x:Key="ArtworkConverter"/>
         <Style TargetType="TextBlock" x:Key="MixTitle">
             <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
-            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontSize" Value="14"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
             <Setter Property="HorizontalAlignment" Value="Center"/>
@@ -121,7 +121,7 @@
                             </Border.Background>
                         </Border>
 
-                        <TextBlock Text="{Binding Title}" Style="{StaticResource MixTitle}"/>
+                        <TextBlock Text="{Binding Title}" Style="{StaticResource MixTitle}" Padding="0,2,0,0"/>
                     </StackPanel>
                 </DataTemplate>
 

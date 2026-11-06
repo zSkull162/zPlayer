@@ -2,7 +2,8 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:core="clr-namespace:zPlayer.Core;assembly=zPlayer.Core"
              xmlns:local="clr-namespace:zPlayer.App.Views"
              xmlns:converters="clr-namespace:zPlayer.App.Converters"
              mc:Ignorable="d" 
@@ -20,7 +21,7 @@
         </Style>
         <Style TargetType="TextBlock" x:Key="MixInfo">
             <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
-            <Setter Property="Padding" Value="6,6,0,0"/>
+            <Setter Property="Padding" Value="6,0,0,0"/>
             <Setter Property="VerticalAlignment" Value="Top"/>
             <Setter Property="HorizontalAlignment" Value="Left"/>
             <Setter Property="Opacity" Value="0.3"/>
@@ -108,7 +109,7 @@
         </Border>
 
         <!--Songs column headers-->
-        <Grid Grid.Row="2" Margin="3,0,36,0">
+        <Grid Grid.Row="3" Margin="3,0,36,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="26"/>
                 <ColumnDefinition Width="*"/>
@@ -123,8 +124,10 @@
         </Grid>
 
         <!--Sorting options-->
-        <StackPanel Grid.Column="1" Grid.Row="3" Orientation="Horizontal" Margin="6,0">
-            <ComboBox x:Name="SortTypeBox" Style="{StaticResource HeaderComboBox}" MinWidth="90"
+        <StackPanel Grid.Column="1" Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="6,0">
+            <TextBlock Text="Sort Songs:" Style="{StaticResource Header}" VerticalAlignment="Center" Padding="0,0,6,0"/>
+
+            <ComboBox x:Name="SortTypeBox" Style="{StaticResource RoundedComboBox}" MinWidth="90"
                         SelectionChanged="SortBox_SelectionChanged">
                 <ComboBoxItem Content="Title"/>
                 <ComboBoxItem Content="Artist"/>
@@ -134,7 +137,7 @@
                 <ComboBoxItem Content="Time Added"/>
             </ComboBox>
 
-            <ComboBox x:Name="SortOrderBox" Style="{StaticResource HeaderComboBox}" MinWidth="90" Margin="8,0,0,0"
+            <ComboBox x:Name="SortOrderBox" Style="{StaticResource RoundedComboBox}" MinWidth="90" Margin="8,0,0,0"
                         SelectionChanged="SortBox_SelectionChanged">
                 <ComboBoxItem Content="A-Z"/>
                 <ComboBoxItem Content="Z-A"/>
@@ -196,7 +199,9 @@
                                 </Grid.ColumnDefinitions>
 
                                 <Border Width="40" Height="40" CornerRadius="3" ClipToBounds="True">
-                                    <Image Source="{Binding Artwork, Converter={StaticResource ArtworkConverter}}" Stretch="UniformToFill"/>
+                                    <Border.Background>
+                                        <ImageBrush ImageSource="{Binding Artwork, Converter={StaticResource ArtworkConverter}, ConverterParameter=96}" Stretch="UniformToFill"/>
+                                    </Border.Background>
                                 </Border>
 
                                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0,0,0">
@@ -229,6 +234,18 @@
                             <Border Background="Transparent" ToolTip="Drag to reorder"
                                     Padding="6" Cursor="SizeNS"
                                     PreviewMouseLeftButtonDown="ReorderHandle_MouseDown">
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding DataContext.SortType, RelativeSource={RelativeSource AncestorType={x:Type local:MixDetailsView}}}"
+                                                            Value="{x:Static core:MixSortType.Manual}">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                                <Setter Property="IsEnabled" Value="False"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
                                 <Image Source="/Assets/Icons/Reorder_32x.png" Opacity="0.5"/>
                             </Border>
                         </DataTemplate>

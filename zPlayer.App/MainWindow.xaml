@@ -166,7 +166,9 @@
                                         </Grid.ColumnDefinitions>
 
                                         <Border Width="40" Height="40" CornerRadius="3" ClipToBounds="True">
-                                            <Image Source="{Binding Artwork, Converter={StaticResource ArtworkConverter}}" Stretch="UniformToFill"/>
+                                            <Border.Background>
+                                                <ImageBrush ImageSource="{Binding Artwork, Converter={StaticResource ArtworkConverter}, ConverterParameter=96}" Stretch="UniformToFill"/>
+                                            </Border.Background>
                                         </Border>
 
                                         <StackPanel Grid.Column="1" Margin="4,0,4,0" VerticalAlignment="Center">
