@@ -166,7 +166,7 @@ namespace zPlayer.Infrastructure.Storage
                     """;
                     command.Parameters.AddWithValue("$id", mix.Id.ToString());
                     command.Parameters.AddWithValue("$title", mix.Title);
-                    command.Parameters.AddWithValue("sortType", (int)mix.SortType);
+                    command.Parameters.AddWithValue("$sortType", (int)mix.SortType);
                     command.Parameters.AddWithValue("$sortDescending", mix.SortDescending ? 1 : 0);
                     command.Parameters.AddWithValue("$artwork", (object?)mix.CustomArtwork ?? DBNull.Value);
                     command.ExecuteNonQuery();

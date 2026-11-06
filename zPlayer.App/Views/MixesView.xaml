@@ -63,7 +63,7 @@
 
         <!--Mixes grid-->
         <ListBox x:Name="MixesGrid" Grid.Row="1"
-                 Tag="{Binding Commands, RelativeSource={RelativeSource AncestorType={x:Type local:MixesView}}}"
+                 Tag="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:MixesView}}}"
                  ItemContainerStyle="{StaticResource AlbumGridItem}"
                  Background="Transparent"
                  BorderThickness="0"
@@ -74,32 +74,31 @@
                  ContextMenuOpening="MixesGrid_ContextMenuOpening"
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                  ScrollViewer.CanContentScroll="False">
-
             <ListBox.ContextMenu>
                 <ContextMenu Style="{StaticResource RoundedContextMenu}"
                              DataContext="{Binding PlacementTarget, RelativeSource={RelativeSource Self}}">
-                    <MenuItem Header="Play" Command="{Binding Tag.PlayMixCommand}" CommandParameter="{Binding}">
+                    <MenuItem Header="Play" Command="{Binding Tag.Commands.PlayMixCommand}" CommandParameter="{Binding}">
                         <MenuItem.Icon>
                             <Image Source="/Assets/Icons/Play_32x.png"/>
                         </MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem Header="Play Next" Command="{Binding Tag.PlayMixNextCommand}" CommandParameter="{Binding}">
+                    <MenuItem Header="Play Next" Command="{Binding Tag.Commands.PlayMixNextCommand}" CommandParameter="{Binding}">
                         <MenuItem.Icon>
                             <Image Source="/Assets/Icons/QueueNext_32x.png"/>
                         </MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem Header="Add to Queue" Command="{Binding Tag.AddMixToQueueCommand}" CommandParameter="{Binding}">
+                    <MenuItem Header="Add to Queue" Command="{Binding Tag.Commands.AddMixToQueueCommand}" CommandParameter="{Binding}">
                         <MenuItem.Icon>
                             <Image Source="/Assets/Icons/QueueAdd_32x.png"/>
                         </MenuItem.Icon>
                     </MenuItem>
                     <Separator Style="{StaticResource RoundedSeparator}"/>
-                    <MenuItem Header="Edit Info" Command="{Binding Tag.EditMixCommand}" CommandParameter="{Binding Tag.SingleSelectedMix}">
+                    <MenuItem Header="Edit Info" Command="{Binding Tag.Commands.EditMixCommand}" CommandParameter="{Binding Tag.SingleSelectedMix}">
                         <MenuItem.Icon>
                             <Image Source="/Assets/Icons/Edit_32x.png"/>
                         </MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem Header="Delete" Command="{Binding Tag.DeleteMixCommand}" CommandParameter="{Binding}">
+                    <MenuItem Header="Delete" Command="{Binding Tag.Commands.DeleteMixCommand}" CommandParameter="{Binding}">
                         <MenuItem.Icon>
                             <Image Source="/Assets/Icons/Remove_32x.png"/>
                         </MenuItem.Icon>

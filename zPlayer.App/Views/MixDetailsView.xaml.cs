@@ -181,7 +181,9 @@ namespace zPlayer.App.Views
         private bool TryGetDraggedSong(DragEventArgs e, out Song? song) {
             song = null;
 
+            if (mix.SortType != MixSortType.Manual) return false;
             if (e.Data.GetData(typeof(MixSongDragData)) is not MixSongDragData data) return false;
+            if (!ReferenceEquals(data.Mix, mix)) return false;
             if (!mix.Entries.Any(entry => entry.SongId == data.Song.Id)) return false;
 
             song = data.Song;
@@ -202,6 +204,7 @@ namespace zPlayer.App.Views
             List<Song> reordered = GetPlaybackSongs().ToList();
 
             int sourceIndex = reordered.IndexOf(draggedSong!);
+            if (sourceIndex < 0) return;
             int insertIndex = reordered.Count;
 
             if (e.OriginalSource is DependencyObject source &&

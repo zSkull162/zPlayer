@@ -58,7 +58,7 @@ namespace zPlayer.App
 
         public MainWindow() {
             songCommands = new(player, ShowEditSongs, DeleteSongs, ShowMoveSongsToAlbum, ShowAddSongsToMix);
-            albumCommands = new(player, ShowEditAlbums, DeleteAlbums);
+            albumCommands = new(player, ShowEditAlbums, DeleteAlbums, ShowAddSongsToMix);
             mixCommands = new(library, player, ShowEditMix, DeleteMixes);
 
             InitializeComponent();
@@ -362,6 +362,7 @@ namespace zPlayer.App
             CollectionViewSource.GetDefaultView(library.Songs).Refresh();
             if (MainContent.Content is AlbumsView albumsView) albumsView.RefreshAlbums();
             else if (MainContent.Content is AlbumDetailsView detailsView) detailsView.RefreshView();
+            else RefreshMixViews();
 
             if (errors.Count > 0) {
                 string summary = $"Imported: {imported}\nAlready in library: {skipped}\nFailed: {errors.Count}\n\n" + string.Join("\n", errors.Take(10));
@@ -638,25 +639,42 @@ namespace zPlayer.App
         }
 
         private void ShowAddSongsToMix(Song[] songs) {
+            Guid[] songIds = songs.Select(song => song.Id).Distinct().ToArray();
+            if (songIds.Length == 0) return;
             if (library.Mixes.Count == 0) {
                 MessageBox.Show(this, "Create a mix first.", "Add to Mix", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
-            AddToMixView view = new(library.GetMixes());
+            AddToMixView view = new(library.GetMixes(), songIds);
             view.CloseRequested += ClosePopup;
-            view.AddRequested += mix => {
-                Mix draft = mix.Clone();
-                draft.AddSongs(songs.Select(song => song.Id));
+            view.AddRequested += selectedMixes => {
+                List<(Mix Original, Mix Draft)> changes = [];
 
                 try {
-                    database.SaveMix(draft);
+                    HashSet<Guid> availableIds = library.Songs.Select(song => song.Id).ToHashSet();
+
+                    if (songIds.Any(id => !availableIds.Contains(id))) {
+                        throw new InvalidOperationException("One or more selected songs are no longer in the library.");
+                    }
+                    foreach (Mix selected in selectedMixes) {
+                        Mix original = library.GetMix(selected.Id) ?? throw new InvalidOperationException("A selected mix is no longer in the library.");
+                        Mix draft = original.Clone();
+                        if (draft.AddSongs(songIds) > 0) {
+                            changes.Add((original, draft));
+                        }
+                    }
+                    if (changes.Count > 0) {
+                        database.SaveMixes(changes.Select(change => change.Draft));
+                    }
                 }
                 catch (Exception ex) {
                     MessageBox.Show(this, ex.Message, "Add to Mix Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
-                ApplyMixDraft(mix, draft);
+                foreach (var change in changes) {
+                    ApplyMixDraft(change.Original, change.Draft);
+                }
                 RefreshMixViews();
                 ClosePopup();
             };

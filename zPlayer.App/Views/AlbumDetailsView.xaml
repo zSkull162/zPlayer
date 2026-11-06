@@ -159,7 +159,7 @@
                             <Image Source="/Assets/Icons/MoveToAlbum_32x.png"/>
                         </MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem Header="Add to Mix" Command="{Binding Tag.Commands.AddSongsToMixCommand}" CommandParameter="{Binding}">
+                    <MenuItem Header="Add to Mix" Command="{Binding Tag.AddSongsToMixCommand}" CommandParameter="{Binding}">
                         <MenuItem.Icon>
                             <Image Source="/Assets/Icons/MixAdd_32x.png"/>
                         </MenuItem.Icon>

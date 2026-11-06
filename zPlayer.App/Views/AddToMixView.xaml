@@ -15,8 +15,25 @@
 
         <TextBlock Text="Add songs to a Mix" Style="{StaticResource WindowTitle}" HorizontalAlignment="Center"/>
 
-        <Border Style="{StaticResource Panel}" Margin="4" Height="150" Grid.Row="1">
-            <!--List of all mixes with a checkbox here-->
+        <Border Style="{StaticResource Panel}" CornerRadius="3" Margin="4" Height="150" Grid.Row="1">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <ItemsControl x:Name="MixChoicesList" Margin="6">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <CheckBox IsChecked="{Binding IsChecked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                      HorizontalContentAlignment="Stretch" VerticalContentAlignment="Center"
+                                      Foreground="{DynamicResource TextBrush}" Margin="2,6">
+                                <StackPanel Margin="4,0,0,0">
+                                    <TextBlock Text="{Binding Title}" FontWeight="SemiBold"
+                                               TextTrimming="CharacterEllipsis" ToolTip="{Binding Title}"/>
+                                    <TextBlock Text="{Binding StatusText}" FontSize="10" Opacity="0.5"
+                                               TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </CheckBox>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
         </Border>
 
         <Button Click="Done_Click" Content="Done" Style="{StaticResource RoundedButton}"

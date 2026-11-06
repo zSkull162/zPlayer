@@ -146,7 +146,7 @@
                 Style="{StaticResource SongsGrid}"
                 RowStyle="{StaticResource SongGridRow}"
                 CellStyle="{StaticResource SongGridCell}"
-                Tag="{Binding Commands, RelativeSource={RelativeSource AncestorType={x:Type local:MixDetailsView}}}"
+                Tag="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:MixDetailsView}}}"
                 PreviewMouseLeftButtonDown="MixSongsGrid_LeftMouseDown"
                 PreviewMouseRightButtonDown="MixSongsGrid_RightMouseDown"
                 ContextMenuOpening="MixSongsGrid_ContextMenuOpening"
@@ -181,7 +181,7 @@
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center"
-                                       Foreground="{StaticResource TextBrush}" Opacity="0.5" FontSize="12" Loaded="AlbumIndex_Loaded"/>
+                                       Foreground="{StaticResource TextBrush}" Opacity="0.5" FontSize="12" Loaded="MixIndex_Loaded"/>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
