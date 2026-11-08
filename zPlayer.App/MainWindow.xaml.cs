@@ -363,7 +363,6 @@ namespace zPlayer.App
                     if (dialog.ShowDialog(this) != true) return;
                     paths = dialog.FileNames;
                 }
-
                 int imported = 0;
                 int skipped = 0;
                 List<string> errors = [];
@@ -376,7 +375,6 @@ namespace zPlayer.App
                             skipped++;
                             continue;
                         }
-
                         Song song = await Task.Run(() => metadataReader.Read(filePath));
                         if (!IsLoaded) return;
                         Album? album = library.Albums.FirstOrDefault(existing =>
@@ -391,7 +389,6 @@ namespace zPlayer.App
                             database.SaveAlbum(album);
                             library.AddAlbum(album);
                         }
-
                         song.AlbumId = album.Id;
                         song.AlbumPosIndex = album.Songs.Select(existing => existing.AlbumPosIndex).DefaultIfEmpty(-1).Max() + 1;
                         database.SaveSong(song, writeArtwork: true);
@@ -403,12 +400,11 @@ namespace zPlayer.App
                         errors.Add($"{Path.GetFileName(selectedPath)}: {ex.Message}");
                     }
                 }
-
                 CollectionViewSource.GetDefaultView(library.Songs).Refresh();
                 if (MainContent.Content is AlbumsView albumsView) albumsView.RefreshAlbums();
                 else if (MainContent.Content is AlbumDetailsView detailsView) detailsView.RefreshView();
                 else RefreshMixViews();
-
+                
                 if (fromFolder || errors.Count > 0) {
                     string summary = $"Imported: {imported}\nAlready in library: {skipped}\nFailed files: {errors.Count}";
                     if (fromFolder) summary += $"\nFolders that could not be read: {scanErrors.Count}";
@@ -439,7 +435,6 @@ namespace zPlayer.App
                 try {
                     foreach (FileSystemInfo entry in directory.EnumerateFileSystemInfos()) {
                         if (entry is DirectoryInfo child) {
-                            // Junctions and symlinks can lead outside the chosen folder or create cycles.
                             if ((child.Attributes & FileAttributes.ReparsePoint) == 0) pending.Push(child);
                         }
                         else if (entry is FileInfo file && AudioExtensions.Contains(file.Extension)) {
@@ -451,7 +446,6 @@ namespace zPlayer.App
                     errors.Add($"{directory.FullName}: {ex.Message}");
                 }
             }
-
             paths.Sort(StringComparer.OrdinalIgnoreCase);
             return (paths, errors);
         }

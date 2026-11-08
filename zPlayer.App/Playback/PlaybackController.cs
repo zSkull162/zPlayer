@@ -39,7 +39,6 @@ namespace zPlayer.App.Playback
         public LoopMode Loop { get; private set; } = LoopMode.Off;
         public bool IsPlaying => output?.PlaybackState == PlaybackState.Playing;
 
-        // The decoder reads ahead into WaveOut buffers, so its cursor advances in chunks.
         private readonly Stopwatch playbackClock = new();
         private TimeSpan playbackOffset;
 
