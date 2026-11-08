@@ -9,7 +9,6 @@
              mc:Ignorable="d" 
              d:DesignHeight="620" d:DesignWidth="1030">
     <UserControl.Resources>
-        <converters:RowNumberConverter x:Key="RowNumberConverter"/>
         <Style TargetType="TextBlock" x:Key="AlbumTitle">
             <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
             <Setter Property="Padding" Value="6,0,0,0"/>
@@ -130,7 +129,7 @@
         </Grid>
 
         <!--Songs-->
-        <DataGrid x:Name="AlbumSongsGrid" AlternationCount="2147483647" Grid.Row="3" Margin="2,4,2,0"
+        <DataGrid x:Name="AlbumSongsGrid" LoadingRow="SongsGrid_LoadingRow" Grid.Row="3" Margin="2,4,2,0"
                 ItemsSource="{Binding Songs}"
                 Style="{StaticResource SongsGrid}"
                 RowStyle="{StaticResource SongGridRow}"
@@ -170,7 +169,7 @@
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center"
-                                       Foreground="{StaticResource TextBrush}" Opacity="0.5" FontSize="12" Text="{Binding AlternationIndex, RelativeSource={RelativeSource AncestorType={x:Type DataGridRow}}, Converter={StaticResource RowNumberConverter}}"/>
+                                       Foreground="{StaticResource TextBrush}" Opacity="0.5" FontSize="12" Text="{Binding Header, RelativeSource={RelativeSource AncestorType={x:Type DataGridRow}}}"/>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
