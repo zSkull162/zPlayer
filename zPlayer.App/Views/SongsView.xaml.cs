@@ -12,6 +12,7 @@ namespace zPlayer.App.Views
     public partial class SongsView : UserControl
     {
         public event Action? ImportSongsRequested;
+        public event Action? ImportFolderRequested;
         public SongCommands Commands { get; }
         private readonly SortState sortState;
         bool restoringSort;
@@ -87,6 +88,10 @@ namespace zPlayer.App.Views
 
         private void ImportSongs_Click(object sender, RoutedEventArgs e) {
             ImportSongsRequested?.Invoke();
+        }
+
+        private void ImportFolder_Click(object sender, RoutedEventArgs e) {
+            ImportFolderRequested?.Invoke();
         }
 
         #region SongsGrid event handlers

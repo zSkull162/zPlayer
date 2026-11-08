@@ -73,26 +73,30 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <!--Import songs button-->
-            <Button Click="ImportSongs_Click" Style="{StaticResource ListRowButton}">
-                <Grid Margin="2,4">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="44"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
+            <DockPanel>
+                <Button DockPanel.Dock="Right" Content="Import Folder…" Click="ImportFolder_Click"
+                        Style="{StaticResource RoundedButton}" VerticalAlignment="Center" Margin="6,0"
+                        Padding="12,6" ToolTip="Import audio files from a folder and its subfolders"/>
+                <Button Click="ImportSongs_Click" Style="{StaticResource ListRowButton}">
+                    <Grid Margin="2,4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="44"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
 
-                    <Border Width="40" Height="40" CornerRadius="4">
-                        <Image Source="/Assets/Icons/Import.png" Stretch="UniformToFill"/>
-                    </Border>
+                        <Border Width="40" Height="40" CornerRadius="4">
+                            <Image Source="/Assets/Icons/Import.png" Stretch="UniformToFill"/>
+                        </Border>
 
-                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0,0,0">
-                        <TextBlock Text="Import Songs" Foreground="{DynamicResource TextBrush}"
-                           FontSize="13" FontWeight="SemiBold"/>
-                        <TextBlock Text="Add music to your library" Foreground="{DynamicResource TextBrush}"
-                           FontSize="11" Opacity="0.5"/>
-                    </StackPanel>
-                </Grid>
-            </Button>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0,0,0">
+                            <TextBlock Text="Import Songs" Foreground="{DynamicResource TextBrush}"
+                               FontSize="13" FontWeight="SemiBold"/>
+                            <TextBlock Text="Add music to your library" Foreground="{DynamicResource TextBrush}"
+                               FontSize="11" Opacity="0.5"/>
+                        </StackPanel>
+                    </Grid>
+                </Button>
+            </DockPanel>
 
             <!--Data column headers-->
             <Grid Grid.Row="1" Margin="54,0,8,4">
