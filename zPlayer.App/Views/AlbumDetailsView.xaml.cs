@@ -181,5 +181,9 @@ namespace zPlayer.App.Views
         }
         #endregion
 
+        private void SongsGrid_LoadingRow(object sender, DataGridRowEventArgs e) {
+            int index = e.Row.GetIndex();
+            e.Row.Header = index >= 0 ? index + 1 : null;
+        }
     }
 }

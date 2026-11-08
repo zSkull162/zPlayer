@@ -10,7 +10,6 @@
              mc:Ignorable="d" 
              d:DesignHeight="620" d:DesignWidth="1030">
     <UserControl.Resources>
-        <converters:RowNumberConverter x:Key="RowNumberConverter"/>
 
         <Style TargetType="TextBlock" x:Key="MixTitle">
             <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
@@ -144,7 +143,7 @@
         </StackPanel>
 
         <!--Songs-->
-        <DataGrid x:Name="MixSongsGrid" AlternationCount="2147483647" Grid.Row="4" Margin="2,4,2,0"
+        <DataGrid x:Name="MixSongsGrid" LoadingRow="SongsGrid_LoadingRow" Grid.Row="4" Margin="2,4,2,0"
                 Style="{StaticResource SongsGrid}"
                 RowStyle="{StaticResource SongGridRow}"
                 CellStyle="{StaticResource SongGridCell}"
@@ -183,7 +182,7 @@
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center"
-                                       Foreground="{StaticResource TextBrush}" Opacity="0.5" FontSize="12" Text="{Binding AlternationIndex, RelativeSource={RelativeSource AncestorType={x:Type DataGridRow}}, Converter={StaticResource RowNumberConverter}}"/>
+                                       Foreground="{StaticResource TextBrush}" Opacity="0.5" FontSize="12" Text="{Binding Header, RelativeSource={RelativeSource AncestorType={x:Type DataGridRow}}}"/>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
