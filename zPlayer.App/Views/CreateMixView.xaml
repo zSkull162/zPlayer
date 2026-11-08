@@ -23,7 +23,7 @@
         <!--Artwork-->
         <Border Grid.Row="1" Width="320" Height="320" CornerRadius="3">
             <Border.Background>
-                <ImageBrush x:Name="ArtworkPreview" ImageSource="{Binding Artwork, Converter={StaticResource ArtworkConverter}}" Stretch="UniformToFill"/>
+                <ImageBrush x:Name="ArtworkPreview" ImageSource="{Binding CustomArtwork, Converter={StaticResource ArtworkConverter}}" Stretch="UniformToFill"/>
             </Border.Background>
         </Border>
 

@@ -14,7 +14,7 @@ using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using zPlayer.App.Commands;
-using zPlayer.App.Converters;
+using zPlayer.App.Artwork;
 using zPlayer.App.Playback;
 using zPlayer.App.Views;
 using zPlayer.Core;
@@ -30,7 +30,6 @@ namespace zPlayer.App
         private readonly AudiofileMetadataReader metadataReader = new();
         private readonly MusicLibraryDatabase database = new();
         private readonly PlaybackController player = new();
-        private readonly ArtworkConverter converter = new();
         private readonly MusicLibrary library = new();
         private readonly MediaKeyListener? mediaKeys;
 
@@ -61,6 +60,7 @@ namespace zPlayer.App
             albumCommands = new(player, ShowEditAlbums, DeleteAlbums, ShowAddSongsToMix);
             mixCommands = new(library, player, ShowEditMix, DeleteMixes);
 
+            CoverArt.Loader = new ArtworkLoader(database);
             InitializeComponent();
             InitDatabase();
             mediaKeys = new();
@@ -172,7 +172,7 @@ namespace zPlayer.App
             SongTitleText.Text = song?.Title ?? "Nothing playing";
             SongArtistText.Text = song?.Artist ?? "";
 
-            CurrentSongArtwork.Source = converter.Convert(song?.Artwork!, typeof(ImageSource), null!, CultureInfo.CurrentCulture) as ImageSource;
+            CoverArt.SetReference(CurrentSongArtwork, song?.Cover);
 
             List<Song> queueSongs = player.GetQueueSongs();
             bool queueChanged = !QueueList.Items.Cast<Song>().SequenceEqual(queueSongs);
@@ -317,69 +317,91 @@ namespace zPlayer.App
             }
         }
 
-        private void ImportSongs() {
-            OpenFileDialog dialog = new() {
-                Title = "Import Songs",
-                Filter = "Audio Files|*.mp3;*.flac;*.ogg;*.wav",
-                Multiselect = true,
-                CheckFileExists = true
-            };
-            if (dialog.ShowDialog(this) != true) return;
+        private bool importingSongs;
 
-            int imported = 0;
-            int skipped = 0;
-            List<string> errors = [];
-            HashSet<string> existingPaths = new(library.Songs.Select(song => Path.GetFullPath(song.FilePath)), StringComparer.OrdinalIgnoreCase);
+        private async void ImportSongs() {
+            if (importingSongs) return;
+            importingSongs = true;
+            try {
+                OpenFileDialog dialog = new() {
+                    Title = "Import Songs",
+                    Filter = "Audio Files|*.mp3;*.flac;*.ogg;*.wav",
+                    Multiselect = true,
+                    CheckFileExists = true
+                };
+                if (dialog.ShowDialog(this) != true) return;
 
-            foreach (string selectedPath in dialog.FileNames) {
-                try {
-                    string filePath = Path.GetFullPath(selectedPath);
-                    if (existingPaths.Contains(filePath)) {
-                        skipped++;
-                        continue;
+                int imported = 0;
+                int skipped = 0;
+                List<string> errors = [];
+                HashSet<string> existingPaths = new(library.Songs.Select(song => Path.GetFullPath(song.FilePath)), StringComparer.OrdinalIgnoreCase);
+
+                foreach (string selectedPath in dialog.FileNames) {
+                    try {
+                        string filePath = Path.GetFullPath(selectedPath);
+                        if (existingPaths.Contains(filePath)) {
+                            skipped++;
+                            continue;
+                        }
+
+                        Song song = await Task.Run(() => metadataReader.Read(filePath));
+                        if (!IsLoaded) return;
+                        Album? album = library.Albums.FirstOrDefault(existing =>
+                                string.Equals(existing.Title, song.AlbumTitle, StringComparison.OrdinalIgnoreCase) &&
+                                string.Equals(existing.Artist, song.AlbumArtist, StringComparison.OrdinalIgnoreCase));
+
+                        if (album == null) {
+                            album = new Album {
+                                Title = song.AlbumTitle,
+                                Artist = song.AlbumArtist
+                            };
+                            database.SaveAlbum(album);
+                            library.AddAlbum(album);
+                        }
+
+                        song.AlbumId = album.Id;
+                        song.AlbumPosIndex = album.Songs.Select(existing => existing.AlbumPosIndex).DefaultIfEmpty(-1).Max() + 1;
+                        database.SaveSong(song, writeArtwork: true);
+                        library.AddSong(song);
+                        existingPaths.Add(filePath);
+                        imported++;
                     }
-
-                    Song song = metadataReader.Read(filePath);
-                    Album? album = library.Albums.FirstOrDefault(existing =>
-                            string.Equals(existing.Title, song.AlbumTitle, StringComparison.OrdinalIgnoreCase) &&
-                            string.Equals(existing.Artist, song.AlbumArtist, StringComparison.OrdinalIgnoreCase));
-
-                    if (album == null) {
-                        album = new Album {
-                            Title = song.AlbumTitle,
-                            Artist = song.AlbumArtist
-                        };
-                        database.SaveAlbum(album);
-                        library.AddAlbum(album);
+                    catch (Exception ex) {
+                        errors.Add($"{Path.GetFileName(selectedPath)}: {ex.Message}");
                     }
-
-                    song.AlbumId = album.Id;
-                    song.AlbumPosIndex = album.Songs.Select(existing => existing.AlbumPosIndex).DefaultIfEmpty(-1).Max() + 1;
-                    database.SaveSong(song);
-                    library.AddSong(song);
-                    existingPaths.Add(filePath);
-                    imported++;
                 }
-                catch (Exception ex) {
-                    errors.Add($"{Path.GetFileName(selectedPath)}: {ex.Message}");
+
+                CollectionViewSource.GetDefaultView(library.Songs).Refresh();
+                if (MainContent.Content is AlbumsView albumsView) albumsView.RefreshAlbums();
+                else if (MainContent.Content is AlbumDetailsView detailsView) detailsView.RefreshView();
+                else RefreshMixViews();
+
+                if (errors.Count > 0) {
+                    string summary = $"Imported: {imported}\nAlready in library: {skipped}\nFailed: {errors.Count}\n\n" + string.Join("\n", errors.Take(10));
+                    if (errors.Count > 10) summary += "\nAdditional errors omitted.";
+                    MessageBox.Show(this, summary, "Import Songs", MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
             }
-
-            CollectionViewSource.GetDefaultView(library.Songs).Refresh();
-            if (MainContent.Content is AlbumsView albumsView) albumsView.RefreshAlbums();
-            else if (MainContent.Content is AlbumDetailsView detailsView) detailsView.RefreshView();
-            else RefreshMixViews();
-
-            if (errors.Count > 0) {
-                string summary = $"Imported: {imported}\nAlready in library: {skipped}\nFailed: {errors.Count}\n\n" + string.Join("\n", errors.Take(10));
-                if (errors.Count > 10) summary += "\nAdditional errors omitted.";
-                MessageBox.Show(this, summary, "Import Songs", MessageBoxButton.OK, MessageBoxImage.Warning);
+            finally {
+                importingSongs = false;
             }
         }
 
         #region Popup menus
-        private void ShowEditSong(Song song) {
-            EditSongView view = new(song, library);
+        private async void ShowEditSong(Song song) {
+            object currentView = MainContent.Content;
+            byte[]? originalArtwork;
+            try {
+                originalArtwork = song.Cover is { } cover ? await Task.Run(() => database.LoadArtwork(cover)) : null;
+                if (song.Cover.HasValue && originalArtwork == null) throw new InvalidOperationException("The original cover is unavailable.");
+            }
+            catch (Exception ex) {
+                MessageBox.Show(this, ex.Message, "Artwork Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+            if (!ReferenceEquals(MainContent.Content, currentView) || PopupContent.Content != null) return;
+
+            EditSongView view = new(song, library, originalArtwork, database);
 
             view.CloseRequested += ClosePopup;
             view.SaveRequested += edited => {
@@ -390,21 +412,14 @@ namespace zPlayer.App
                         edited.AlbumPosIndex = destination == null ? 0 : destination.Songs.Select(existing => existing.AlbumPosIndex)
                                 .DefaultIfEmpty(-1).Max() + 1;
                     }
-                    database.SaveSong(edited);
+                    database.SaveSong(edited, writeArtwork: !ReferenceEquals(edited.Artwork, originalArtwork));
                 }
                 catch (Exception ex) {
                     MessageBox.Show(this, $"Could not save the song:\n{ex.Message}", "Save Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
 
-                foreach (Album album in library.Albums) {
-                    album.Songs.RemoveAll(existing => existing.Id == song.Id);
-                }
-                if (edited.AlbumId.HasValue) {
-                    Album? targetAlbum = library.GetAlbum(edited.AlbumId.Value);
-                    targetAlbum?.Songs.Add(song);
-                }
-                song.ApplyEdits(edited);
+                ApplySavedSongs([edited]);
                 RefreshAfterSongEdit();
                 ClosePopup();
             };
@@ -424,15 +439,12 @@ namespace zPlayer.App
 
                     foreach (Song draft in drafts) {
                         if (changes.Artist != null) draft.Artist = changes.Artist;
-
-                        if (changes.ArtworkMode == MultiArtworkMode.Automatic) {
-                            draft.Artwork = metadataReader.Read(draft.FilePath).Artwork;
-                        }
-                        else if (changes.ArtworkMode == MultiArtworkMode.Custom) {
-                            draft.Artwork = changes.Artwork?.ToArray();
-                        }
                     }
-                    database.SaveSongs(drafts);
+
+                    database.SaveSongs(drafts, writeArtwork: changes.ArtworkMode != MultiArtworkMode.Keep,
+                        readArtwork: draft => changes.ArtworkMode == MultiArtworkMode.Automatic
+                            ? metadataReader.Read(draft.FilePath).Artwork
+                            : changes.Artwork);
                     ApplySavedSongs(drafts);
                 }
                 catch (Exception ex) {
@@ -445,13 +457,25 @@ namespace zPlayer.App
             OpenPopup(view);
         }
 
-        private void ShowEditAlbum(Album album) {
-            EditAlbumView view = new(album);
+        private async void ShowEditAlbum(Album album) {
+            object currentView = MainContent.Content;
+            byte[]? originalArtwork;
+            try {
+                originalArtwork = album.CustomCover is { } cover ? await Task.Run(() => database.LoadArtwork(cover)) : null;
+                if (album.CustomCover.HasValue && originalArtwork == null) throw new InvalidOperationException("The original cover is unavailable.");
+            }
+            catch (Exception ex) {
+                MessageBox.Show(this, ex.Message, "Artwork Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+            if (!ReferenceEquals(MainContent.Content, currentView) || PopupContent.Content != null) return;
+
+            EditAlbumView view = new(album, originalArtwork);
 
             view.CloseRequested += ClosePopup;
             view.SaveRequested += edited => {
                 try {
-                    database.SaveAlbum(edited);
+                    database.SaveAlbum(edited, writeArtwork: !ReferenceEquals(edited.CustomArtwork, originalArtwork));
                 }
                 catch (Exception ex) {
                     MessageBox.Show(this, $"Could not save the album:\n{ex.Message}", "Save Error", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -460,7 +484,7 @@ namespace zPlayer.App
 
                 album.Title = edited.Title;
                 album.Artist = edited.Artist;
-                album.CustomArtwork = edited.CustomArtwork?.ToArray();
+                album.CustomCover = edited.CustomCover;
                 album.ArtworkSongId = edited.ArtworkSongId;
 
                 foreach (Song song in library.Songs.Where(song => song.AlbumId == album.Id)) {
@@ -490,15 +514,14 @@ namespace zPlayer.App
 
                 foreach (Album draft in drafts) {
                     if (changes.Artist != null) draft.Artist = changes.Artist;
-
                     if (changes.ArtworkMode != MultiArtworkMode.Keep) {
-                        draft.CustomArtwork = changes.ArtworkMode == MultiArtworkMode.Custom ? changes.Artwork?.ToArray() : null;
+                        draft.CustomArtwork = changes.ArtworkMode == MultiArtworkMode.Custom ? changes.Artwork : null;
                         draft.ArtworkSongId = null;
                     }
                 }
 
                 try {
-                    database.SaveAlbums(drafts);
+                    database.SaveAlbums(drafts, writeArtwork: changes.ArtworkMode != MultiArtworkMode.Keep);
                 }
                 catch (Exception ex) {
                     MessageBox.Show(this, $"Could not save the albums:\n{ex.Message}", "Save Error", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -508,7 +531,7 @@ namespace zPlayer.App
                 foreach (Album draft in drafts) {
                     Album original = albums.First(album => album.Id == draft.Id);
                     original.Artist = draft.Artist;
-                    original.CustomArtwork = draft.CustomArtwork?.ToArray();
+                    original.CustomCover = draft.CustomCover;
                     original.ArtworkSongId = draft.ArtworkSongId;
 
                     foreach (Song song in library.Songs.Where(song => song.AlbumId == original.Id)) {
@@ -527,7 +550,7 @@ namespace zPlayer.App
             view.CloseRequested += ClosePopup;
             view.CreateRequested += album => {
                 try {
-                    database.SaveAlbum(album);
+                    database.SaveAlbum(album, writeArtwork: true);
                 }
                 catch (Exception ex) {
                     MessageBox.Show(this, $"Could not create the album:\n{ex.Message}", "Create Album Error", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -613,7 +636,7 @@ namespace zPlayer.App
             view.CloseRequested += ClosePopup;
             view.CreateRequested += mix => {
                 try {
-                    database.SaveMix(mix);
+                    database.SaveMix(mix, writeArtwork: true);
                 }
                 catch (Exception ex) {
                     MessageBox.Show(this, ex.Message, "Create Mix Error", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -626,12 +649,24 @@ namespace zPlayer.App
             OpenPopup(view);
         }
 
-        private void ShowEditMix(Mix mix) {
-            EditMixView view = new(library, mix);
+        private async void ShowEditMix(Mix mix) {
+            object currentView = MainContent.Content;
+            byte[]? originalArtwork;
+            try {
+                originalArtwork = mix.CustomCover is { } cover ? await Task.Run(() => database.LoadArtwork(cover)) : null;
+                if (mix.CustomCover.HasValue && originalArtwork == null) throw new InvalidOperationException("The original cover is unavailable.");
+            }
+            catch (Exception ex) {
+                MessageBox.Show(this, ex.Message, "Artwork Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+            if (!ReferenceEquals(MainContent.Content, currentView) || PopupContent.Content != null) return;
+
+            EditMixView view = new(library, mix, originalArtwork);
             view.CloseRequested += ClosePopup;
             view.SaveRequested += draft => {
                 try {
-                    database.SaveMix(draft);
+                    database.SaveMix(draft, writeArtwork: !ReferenceEquals(draft.CustomArtwork, originalArtwork));
                 }
                 catch (Exception ex) {
                     MessageBox.Show(this, ex.Message, "Save Mix Error", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -862,7 +897,7 @@ namespace zPlayer.App
 
         private void ApplyMixDraft(Mix original, Mix draft) {
             original.Title = draft.Title;
-            original.CustomArtwork = draft.CustomArtwork?.ToArray();
+            original.CustomCover = draft.CustomCover;
             original.SortType = draft.SortType;
             original.SortDescending = draft.SortDescending;
             original.Entries = [.. draft.Entries];

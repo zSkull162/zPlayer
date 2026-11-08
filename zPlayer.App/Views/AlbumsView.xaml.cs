@@ -11,6 +11,8 @@ namespace zPlayer.App.Views
 
     public partial class AlbumsView : UserControl
     {
+        private const int PageSize = 40;
+        private int page;
         private readonly MusicLibrary library;
         private readonly SortState sortState;
         private bool restoringSort;
@@ -75,19 +77,39 @@ namespace zPlayer.App.Views
             }
             object? selectedItem = AlbumsGrid.SelectedItem;
             List<object> items = [new CreateAlbumTile()];
-            items.AddRange(sorted);
+            var ordered = sorted.ToList();
+            int pageCount = Math.Max(1, (ordered.Count + PageSize - 1) / PageSize);
+            page = Math.Clamp(page, 0, pageCount - 1);
+            items.AddRange(ordered.Skip(page * PageSize).Take(PageSize));
+
+            PageText.Text = $"Page {page + 1} of {pageCount}";
+            PageControls.Visibility = pageCount > 1 ? Visibility.Visible : Visibility.Collapsed;
+            PreviousPageButton.IsEnabled = page > 0;
+            NextPageButton.IsEnabled = page + 1 < pageCount;
             return items;
+        }
+
+        private void PreviousPage_Click(object sender, RoutedEventArgs e) {
+            page--;
+            RefreshAlbums();
+        }
+
+        private void NextPage_Click(object sender, RoutedEventArgs e) {
+            page++;
+            RefreshAlbums();
         }
 
         private void SortBox_SelectionChanged(object sender, SelectionChangedEventArgs e) {
             if (restoringSort || !IsInitialized) return;
             sortState.TypeIndex = SortTypeBox.SelectedIndex;
             sortState.OrderIndex = SortOrderBox.SelectedIndex;
+            page = 0;
             RefreshAlbums();
         }
 
         private void AlbumSearchBox_TextChanged(object sender, TextChangedEventArgs e) {
             if (!IsInitialized) return;
+            page = 0;
             RefreshAlbums();
         }
         #endregion

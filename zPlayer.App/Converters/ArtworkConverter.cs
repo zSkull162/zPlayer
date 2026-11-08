@@ -9,7 +9,7 @@ namespace zPlayer.App.Converters
     public class ArtworkConverter : IValueConverter
     {
         private static readonly ConditionalWeakTable<byte[], Dictionary<int, BitmapImage>> cache = new();
-        private static readonly BitmapImage defaultArtwork = CreateDefaultArtwork();
+        public static readonly BitmapImage DefaultArtwork = CreateDefaultArtwork();
 
         private static BitmapImage CreateDefaultArtwork() {
             BitmapImage image = new();
@@ -39,7 +39,7 @@ namespace zPlayer.App.Converters
         }
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture) {
-            if (value is not byte[] bytes || bytes.Length == 0) return defaultArtwork;
+            if (value is not byte[] bytes || bytes.Length == 0) return DefaultArtwork;
             int size = int.TryParse(parameter?.ToString(), out int requestedSize)
                 ? Math.Clamp(requestedSize, 16, 2048) : 384;
 
@@ -54,7 +54,7 @@ namespace zPlayer.App.Converters
                 }
             }
             catch {
-                return defaultArtwork;
+                return DefaultArtwork;
             }
         }
 

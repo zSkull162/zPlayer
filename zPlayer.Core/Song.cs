@@ -17,6 +17,12 @@ namespace zPlayer.Core
         private string albumTitle  = "Unknown Album";
         private string albumArtist  = "Unknown Artist";
         private byte[]? artwork;
+        private ArtworkRef? cover;
+
+        public ArtworkRef? Cover {
+            get => cover;
+            set => SetField(ref cover, value);
+        }
         private string filePath  = string.Empty;
         private TimeSpan duration;
 
@@ -78,7 +84,7 @@ namespace zPlayer.Core
         public void ApplyEdits(Song edited) {
             Title = edited.Title;
             Artist = edited.Artist;
-            Artwork = edited.Artwork?.ToArray();
+            Cover = edited.Cover;
             AlbumId = edited.AlbumId;
             AlbumTitle = edited.AlbumTitle;
             AlbumArtist = edited.AlbumArtist;

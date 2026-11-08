@@ -15,20 +15,13 @@ namespace zPlayer.Core
         public  Guid? ArtworkSongId { get; set; }
 
         public TimeSpan Duration => TimeSpan.FromTicks(Songs.Sum(s => s.Duration.Ticks));
-        public byte[]? Artwork => GetArtwork();
-
-        public byte[]? GetArtwork() {
-            if (CustomArtwork != null && CustomArtwork.Length > 0) return CustomArtwork; // Prioritize custom artwork first,
-
-            if (ArtworkSongId.HasValue) {
-                Song? selected = Songs.FirstOrDefault(s => s.Id == ArtworkSongId.Value);
-                if (selected?.Artwork != null && selected.Artwork.Length > 0) return selected.Artwork; // then artwork that was selected from a song in the list,
+        public ArtworkRef? CustomCover { get; set; }
+        public ArtworkRef? Cover {
+            get {
+                if (CustomCover is { } custom) return custom;
+                ArtworkRef? selected = Songs.FirstOrDefault(song => song.Id == ArtworkSongId)?.Cover;
+                return selected ?? Songs.FirstOrDefault(song => song.Cover.HasValue)?.Cover;
             }
-
-            foreach (Song song in Songs) { // and finally, the first song in the list that has an embedded cover
-                if (song.Artwork != null && song.Artwork.Length > 0) return song.Artwork;
-            }
-            return null;
         }
 
         public Album Clone() {
