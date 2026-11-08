@@ -41,9 +41,7 @@ namespace zPlayer.App
         private readonly DispatcherTimer volumeCloseTimer = new() {
             Interval = TimeSpan.FromMilliseconds(125)
         };
-        private readonly DispatcherTimer playbackTimer = new() {
-            Interval = TimeSpan.FromMilliseconds(100)
-        };
+        private bool renderingTimeline;
 
         private readonly BitmapImage playIcon = new(new Uri("pack://application:,,,/Assets/Icons/Play_32x.png"));
         private readonly BitmapImage pauseIcon = new(new Uri("pack://application:,,,/Assets/Icons/Pause_32x.png"));
@@ -106,9 +104,6 @@ namespace zPlayer.App
         private void InitPlaybackUI() {
             TimelineSlider.ValueChanged += TimelineSlider_ValueChanged;
 
-            playbackTimer.Tick += (_, _) => UpdateTimeline();
-            playbackTimer.Start();
-
             player.StateChanged += (_, _) => UpdatePlaybackUI();
             player.PlaybackError += message => {
                 MessageBox.Show(this, message, "Playback Error", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -155,7 +150,7 @@ namespace zPlayer.App
         #endregion
 
         protected override void OnClosed(EventArgs e) {
-            playbackTimer.Stop();
+            SetTimelineRendering(false);
             volumeCloseTimer.Stop();
             SaveVolumeSetting();
             mediaKeys?.Dispose();
@@ -197,6 +192,7 @@ namespace zPlayer.App
             ShuffleButton.Opacity = ShuffleButton.IsEnabled ? 1 : 0.25;
 
             PlayPauseImage.Source = player.IsPlaying ? pauseIcon : playIcon;
+            SetTimelineRendering(player.IsPlaying);
             UpdateTimeline();
         }
 
@@ -207,6 +203,18 @@ namespace zPlayer.App
             return time.TotalHours >= 1
                 ? $"{(int)time.TotalHours}:{time.Minutes:00}:{time.Seconds:00}"
                 : $"{(int)time.TotalMinutes:00}:{time.Seconds:00}";
+        }
+
+        private void SetTimelineRendering(bool enabled) {
+            if (renderingTimeline == enabled) return;
+            renderingTimeline = enabled;
+
+            if (enabled) CompositionTarget.Rendering += Timeline_Rendering;
+            else CompositionTarget.Rendering -= Timeline_Rendering;
+        }
+
+        private void Timeline_Rendering(object? sender, EventArgs e) {
+            UpdateTimeline();
         }
 
         private void UpdateTimeline() {

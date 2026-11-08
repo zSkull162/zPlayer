@@ -1,4 +1,5 @@
-﻿using NAudio.Vorbis;
+using System.Diagnostics;
+using NAudio.Vorbis;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 using System.IO;
@@ -38,7 +39,17 @@ namespace zPlayer.App.Playback
         public LoopMode Loop { get; private set; } = LoopMode.Off;
         public bool IsPlaying => output?.PlaybackState == PlaybackState.Playing;
 
-        public TimeSpan Position => reader?.CurrentTime ?? TimeSpan.Zero;
+        // The decoder reads ahead into WaveOut buffers, so its cursor advances in chunks.
+        private readonly Stopwatch playbackClock = new();
+        private TimeSpan playbackOffset;
+
+        public TimeSpan Position {
+            get {
+                TimeSpan elapsed = playbackOffset + playbackClock.Elapsed;
+                TimeSpan duration = Duration;
+                return elapsed < duration ? elapsed : duration;
+            }
+        }
         public TimeSpan Duration => reader?.TotalTime ?? TimeSpan.Zero;
 
         public event EventHandler? StateChanged;
@@ -170,13 +181,19 @@ namespace zPlayer.App.Playback
                 return;
             }
 
-            if (reader.Position >= reader.Length) reader.Position = 0;
+            if (output.PlaybackState == PlaybackState.Stopped && Position >= Duration) {
+                reader.Position = 0;
+                playbackOffset = TimeSpan.Zero;
+                playbackClock.Reset();
+            }
             output.Play();
+            playbackClock.Start();
             NotifyStateChanged();
         }
 
         public void Pause() {
             output?.Pause();
+            playbackClock.Stop();
             NotifyStateChanged();
         }
 
@@ -191,6 +208,9 @@ namespace zPlayer.App.Playback
             if (position > reader.TotalTime) position = reader.TotalTime;
 
             reader.CurrentTime = position;
+            playbackOffset = reader.CurrentTime;
+            playbackClock.Reset();
+            if (IsPlaying) playbackClock.Start();
             NotifyStateChanged();
         }
 
@@ -270,7 +290,10 @@ namespace zPlayer.App.Playback
     
                 output.Init(volumeProvider.ToWaveProvider());
                 output.PlaybackStopped += Output_PlaybackStopped;
-                if (startPlaying) output.Play();
+                if (startPlaying) {
+                    output.Play();
+                    playbackClock.Start();
+                }
 
                 NotifyStateChanged();
             }
@@ -282,6 +305,8 @@ namespace zPlayer.App.Playback
         }
 
         private void StopAudio() {
+            playbackClock.Reset();
+            playbackOffset = TimeSpan.Zero;
             WaveOut? previousOutput = output;
             WaveStream? previousReader = reader;
             output = null;
