@@ -30,6 +30,8 @@
     <None Remove="Assets\Icons\Edit.png" />
     <None Remove="Assets\Icons\Edit_32x.png" />
     <None Remove="Assets\Icons\Import.png" />
+    <None Remove="Assets\Icons\ImportFolder.png" />
+    <None Remove="Assets\Icons\ImportFolder_32x.png" />
     <None Remove="Assets\Icons\Import_32x.png" />
     <None Remove="Assets\Icons\Loop.png" />
     <None Remove="Assets\Icons\LoopAll.png" />
@@ -111,6 +113,8 @@
     <Resource Include="Assets\Icons\Edit.png" />
     <Resource Include="Assets\Icons\Edit_32x.png" />
     <Resource Include="Assets\Icons\Import.png" />
+    <Resource Include="Assets\Icons\ImportFolder.png" />
+    <Resource Include="Assets\Icons\ImportFolder_32x.png" />
     <Resource Include="Assets\Icons\Import_32x.png" />
     <Resource Include="Assets\Icons\Loop.png" />
     <Resource Include="Assets\Icons\LoopAll.png" />
