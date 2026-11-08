@@ -223,10 +223,5 @@ namespace zPlayer.App.Views
         }
         #endregion
 
-        private void MixIndex_Loaded(object sender, RoutedEventArgs e) {
-            if (sender is not TextBlock textBlock) return;
-            DataGridRow? row = ItemsControl.ContainerFromElement(MixSongsGrid, textBlock) as DataGridRow;
-            if (row != null) textBlock.Text = (row.GetIndex() + 1).ToString();
-        }
     }
 }
