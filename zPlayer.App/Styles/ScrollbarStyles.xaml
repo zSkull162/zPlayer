@@ -46,13 +46,13 @@
                         <Track x:Name="PART_Track" Orientation="Vertical" IsDirectionReversed="True"
                                    Minimum="{TemplateBinding Minimum}" Maximum="{TemplateBinding Maximum}"
                                    Value="{Binding Value, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
-                                   ViewportSize="{TemplateBinding ViewportSize}">
+                                   ViewportSize="NaN">
                             <Track.DecreaseRepeatButton>
                                 <RepeatButton Style="{StaticResource ScrollBarPageButton}"
                                                   Command="{x:Static ScrollBar.PageUpCommand}"/>
                             </Track.DecreaseRepeatButton>
                             <Track.Thumb>
-                                <Thumb Style="{StaticResource ScrollBarThumb}" MinHeight="24"/>
+                                <Thumb Style="{StaticResource ScrollBarThumb}" Height="48"/>
                             </Track.Thumb>
                             <Track.IncreaseRepeatButton>
                                 <RepeatButton Style="{StaticResource ScrollBarPageButton}"

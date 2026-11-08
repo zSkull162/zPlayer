@@ -122,7 +122,7 @@
             </Grid.ColumnDefinitions>
             <TextBlock Text="#" HorizontalAlignment="Center"
                     Style="{StaticResource Header}"/>
-            <TextBlock Grid.Column="1" Text="Title" HorizontalAlignment="Left" Padding="54,0,0,0"
+            <TextBlock Grid.Column="1" Text="Title &amp; Artist" HorizontalAlignment="Left" Padding="54,0,0,0"
                     Style="{StaticResource Header}"/>
             <TextBlock Grid.Column="2" Text="Length" HorizontalAlignment="Right"
                     Style="{StaticResource Header}"/>
@@ -190,6 +190,9 @@
                                     <TextBlock Text="{Binding Title}" FontSize="13" FontWeight="SemiBold"
                                                Foreground="{StaticResource TextBrush}" TextTrimming="CharacterEllipsis"
                                                ToolTip="{Binding Title}"/>
+                                    <TextBlock Text="{Binding Artist}" FontSize="11" Opacity="0.5"
+                                               Foreground="{StaticResource TextBrush}" TextTrimming="CharacterEllipsis"
+                                               ToolTip="{Binding Artist}"/>
                                 </StackPanel>
                             </Grid>
                         </DataTemplate>
