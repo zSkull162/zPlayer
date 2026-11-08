@@ -300,6 +300,7 @@ namespace zPlayer.App
                 default:
                     SongsView songView = new SongsView(library, songCommands, viewState.SongsSort);
                     songView.ImportSongsRequested += ImportSongs;
+                    songView.ImportFolderRequested += ImportFolder;
                     MainContent.Content = songView;
                     break;
                 case "Albums":
@@ -319,24 +320,48 @@ namespace zPlayer.App
 
         private bool importingSongs;
 
-        private async void ImportSongs() {
+        private static readonly HashSet<string> AudioExtensions = new(StringComparer.OrdinalIgnoreCase) {
+            ".mp3", ".flac", ".ogg", ".wav"
+        };
+
+        private async void ImportSongs() => await SelectAndImportAsync(fromFolder: false);
+
+        private async void ImportFolder() => await SelectAndImportAsync(fromFolder: true);
+
+        private async Task SelectAndImportAsync(bool fromFolder) {
             if (importingSongs) return;
             importingSongs = true;
             try {
-                OpenFileDialog dialog = new() {
-                    Title = "Import Songs",
-                    Filter = "Audio Files|*.mp3;*.flac;*.ogg;*.wav",
-                    Multiselect = true,
-                    CheckFileExists = true
-                };
-                if (dialog.ShowDialog(this) != true) return;
+                IReadOnlyList<string> paths;
+                List<string> scanErrors = [];
+
+                if (fromFolder) {
+                    OpenFolderDialog dialog = new() { Title = "Import Music Folder" };
+                    if (dialog.ShowDialog(this) != true) return;
+
+                    string folder = dialog.FolderName;
+                    var scan = await Task.Run(() => FindAudioFiles(folder));
+                    if (!IsLoaded) return;
+                    paths = scan.Paths;
+                    scanErrors = scan.Errors;
+                }
+                else {
+                    OpenFileDialog dialog = new() {
+                        Title = "Import Songs",
+                        Filter = "Audio Files|" + string.Join(";", AudioExtensions.Select(extension => "*" + extension)),
+                        Multiselect = true,
+                        CheckFileExists = true
+                    };
+                    if (dialog.ShowDialog(this) != true) return;
+                    paths = dialog.FileNames;
+                }
 
                 int imported = 0;
                 int skipped = 0;
                 List<string> errors = [];
                 HashSet<string> existingPaths = new(library.Songs.Select(song => Path.GetFullPath(song.FilePath)), StringComparer.OrdinalIgnoreCase);
 
-                foreach (string selectedPath in dialog.FileNames) {
+                foreach (string selectedPath in paths) {
                     try {
                         string filePath = Path.GetFullPath(selectedPath);
                         if (existingPaths.Contains(filePath)) {
@@ -376,15 +401,51 @@ namespace zPlayer.App
                 else if (MainContent.Content is AlbumDetailsView detailsView) detailsView.RefreshView();
                 else RefreshMixViews();
 
-                if (errors.Count > 0) {
-                    string summary = $"Imported: {imported}\nAlready in library: {skipped}\nFailed: {errors.Count}\n\n" + string.Join("\n", errors.Take(10));
-                    if (errors.Count > 10) summary += "\nAdditional errors omitted.";
-                    MessageBox.Show(this, summary, "Import Songs", MessageBoxButton.OK, MessageBoxImage.Warning);
+                if (fromFolder || errors.Count > 0) {
+                    string summary = $"Imported: {imported}\nAlready in library: {skipped}\nFailed files: {errors.Count}";
+                    if (fromFolder) summary += $"\nFolders that could not be read: {scanErrors.Count}";
+                    if (fromFolder && paths.Count == 0 && scanErrors.Count == 0) {
+                        summary += "\n\nNo supported audio files were found.";
+                    }
+
+                    string[] issues = scanErrors.Concat(errors).Take(10).ToArray();
+                    if (issues.Length > 0) summary += "\n\n" + string.Join("\n", issues);
+                    if (errors.Count + scanErrors.Count > issues.Length) summary += "\nAdditional errors omitted.";
+
+                    MessageBoxImage icon = issues.Length > 0 ? MessageBoxImage.Warning : MessageBoxImage.Information;
+                    MessageBox.Show(this, summary, fromFolder ? "Import Folder" : "Import Songs", MessageBoxButton.OK, icon);
                 }
             }
             finally {
                 importingSongs = false;
             }
+        }
+
+        private static (List<string> Paths, List<string> Errors) FindAudioFiles(string root) {
+            List<string> paths = [];
+            List<string> errors = [];
+            Stack<DirectoryInfo> pending = new();
+            pending.Push(new DirectoryInfo(root));
+
+            while (pending.TryPop(out DirectoryInfo? directory)) {
+                try {
+                    foreach (FileSystemInfo entry in directory.EnumerateFileSystemInfos()) {
+                        if (entry is DirectoryInfo child) {
+                            // Junctions and symlinks can lead outside the chosen folder or create cycles.
+                            if ((child.Attributes & FileAttributes.ReparsePoint) == 0) pending.Push(child);
+                        }
+                        else if (entry is FileInfo file && AudioExtensions.Contains(file.Extension)) {
+                            paths.Add(file.FullName);
+                        }
+                    }
+                }
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) {
+                    errors.Add($"{directory.FullName}: {ex.Message}");
+                }
+            }
+
+            paths.Sort(StringComparer.OrdinalIgnoreCase);
+            return (paths, errors);
         }
 
         #region Popup menus
