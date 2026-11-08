@@ -181,10 +181,5 @@ namespace zPlayer.App.Views
         }
         #endregion
 
-        private void AlbumIndex_Loaded(object sender, RoutedEventArgs e) {
-            if (sender is not TextBlock textBlock) return;
-            DataGridRow? row = ItemsControl.ContainerFromElement(AlbumSongsGrid, textBlock) as DataGridRow;
-            if (row != null) textBlock.Text = (row.GetIndex() + 1).ToString();
-        }
     }
 }
