@@ -5,6 +5,8 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
 using zPlayer.App.Converters;
+using zPlayer.App.Artwork;
+using System.Threading;
 using zPlayer.Core;
 
 namespace zPlayer.App.Views
@@ -20,14 +22,14 @@ namespace zPlayer.App.Views
         public event Action? CloseRequested;
         public event Action<Album>? SaveRequested;
 
-        public EditAlbumView(Album album) {
+        public EditAlbumView(Album album, byte[]? originalArtwork) {
             draft = album.Clone();
-            customArtwork = draft.CustomArtwork?.ToArray();
+            customArtwork = originalArtwork;
 
             InitializeComponent();
             DataContext = draft;
 
-            var artworkSongs = draft.Songs.Where(song => song.Artwork != null && song.Artwork.Length > 0).ToList();
+            var artworkSongs = draft.Songs.Where(song => song.Cover.HasValue).ToList();
 
             ArtworkSongBox.ItemsSource = artworkSongs;
             ArtworkSongBox.SelectedItem = artworkSongs.FirstOrDefault(song => song.Id == draft.ArtworkSongId) ?? artworkSongs.FirstOrDefault();
@@ -47,7 +49,10 @@ namespace zPlayer.App.Views
             if (ArtworkModeBox.SelectedIndex == 1) RefreshArtwork();
         }
 
-        private void RefreshArtwork() {
+        private int previewVersion;
+
+        private async void RefreshArtwork() {
+            int version = ++previewVersion;
             int mode = ArtworkModeBox.SelectedIndex;
             BrowseArtworkButton.Visibility = mode == 2 ? Visibility.Visible : Visibility.Collapsed;
             SongSelector.Visibility = mode == 1 ? Visibility.Visible : Visibility.Collapsed;
@@ -67,7 +72,24 @@ namespace zPlayer.App.Views
                     draft.ArtworkSongId = null;
                     break;
             }
-            BindingOperations.GetBindingExpression(ArtworkPreview, ImageBrush.ImageSourceProperty)?.UpdateTarget();
+            ArtworkPreview.ImageSource = ArtworkConverter.DefaultArtwork;
+            if (draft.CustomArtwork is { Length: > 0 } bytes) {
+                ArtworkPreview.ImageSource = new ArtworkConverter().BmpFromBytes(bytes, 384);
+                return;
+            }
+
+            var savedCover = draft.CustomCover;
+            draft.CustomCover = null;
+            var automaticCover = draft.Cover;
+            draft.CustomCover = savedCover;
+            if (automaticCover is not { } cover || CoverArt.Loader is not { } loader) return;
+            try {
+                var preview = await loader.GetAsync(cover, 384, CancellationToken.None);
+                if (previewVersion == version && preview != null) ArtworkPreview.ImageSource = preview;
+            }
+            catch (Exception ex) {
+                System.Diagnostics.Debug.WriteLine(ex.Message);
+            }
         }
 
         private void BrowseArtwork_Click(object sender, RoutedEventArgs e) {

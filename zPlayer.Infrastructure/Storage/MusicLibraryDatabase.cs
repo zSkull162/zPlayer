@@ -12,7 +12,7 @@ namespace zPlayer.Infrastructure.Storage
             string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "zPlayer");
             Directory.CreateDirectory(folder);
 
-            string databasePath = Path.Combine(folder, "library.db");
+            string databasePath = Path.Combine(folder, "library-v2.db");
             connectionString = new SqliteConnectionStringBuilder {
                 DataSource = databasePath,
                 ForeignKeys = true
@@ -36,6 +36,7 @@ namespace zPlayer.Infrastructure.Storage
                         AlbumTitle TEXT NOT NULL,
                         AlbumArtist TEXT NOT NULL,
                         Artwork BLOB,
+                        ArtworkRevision INTEGER NOT NULL DEFAULT 0,
                         AlbumId TEXT,
                         AlbumPosIndex INTEGER NOT NULL DEFAULT 0
                     );
@@ -45,6 +46,7 @@ namespace zPlayer.Infrastructure.Storage
                         Title TEXT NOT NULL,
                         Artist TEXT NOT NULL,
                         CustomArtwork BLOB,
+                        ArtworkRevision INTEGER NOT NULL DEFAULT 0,
                         ArtworkSongId TEXT
                     );
 
@@ -58,7 +60,8 @@ namespace zPlayer.Infrastructure.Storage
                         Title TEXT NOT NULL,
                         SortType INTEGER NOT NULL DEFAULT 5,
                         SortDescending INTEGER NOT NULL DEFAULT 0,
-                        CustomArtwork BLOB
+                        CustomArtwork BLOB,
+                        ArtworkRevision INTEGER NOT NULL DEFAULT 0
                     );
 
                     CREATE TABLE IF NOT EXISTS MixSongs (
@@ -71,6 +74,28 @@ namespace zPlayer.Infrastructure.Storage
                         FOREIGN KEY (MixId) REFERENCES Mixes(Id) ON DELETE CASCADE,
                         FOREIGN KEY (SongId) REFERENCES Songs(Id) ON DELETE CASCADE
                     );
+
+                    CREATE TABLE IF NOT EXISTS ArtworkThumbnails (
+                        OwnerKind INTEGER NOT NULL,
+                        OwnerId TEXT NOT NULL,
+                        Revision INTEGER NOT NULL,
+                        PixelWidth INTEGER NOT NULL,
+                        ImageBytes BLOB NOT NULL,
+                        PRIMARY KEY (OwnerKind, OwnerId, Revision, PixelWidth)
+                    );
+
+                    CREATE TRIGGER IF NOT EXISTS DeleteSongThumbnails AFTER DELETE ON Songs
+                    BEGIN
+                        DELETE FROM ArtworkThumbnails WHERE OwnerKind = 0 AND OwnerId = OLD.Id;
+                    END;
+                    CREATE TRIGGER IF NOT EXISTS DeleteAlbumThumbnails AFTER DELETE ON Albums
+                    BEGIN
+                        DELETE FROM ArtworkThumbnails WHERE OwnerKind = 1 AND OwnerId = OLD.Id;
+                    END;
+                    CREATE TRIGGER IF NOT EXISTS DeleteMixThumbnails AFTER DELETE ON Mixes
+                    BEGIN
+                        DELETE FROM ArtworkThumbnails WHERE OwnerKind = 2 AND OwnerId = OLD.Id;
+                    END;
 
                     CREATE INDEX IF NOT EXISTS IX_MixSongs_SongId ON MixSongs(SongId);
                 """;
@@ -127,11 +152,83 @@ namespace zPlayer.Infrastructure.Storage
             command.ExecuteNonQuery();
         }
 
-        #region Save/Load Mix Methods
-        public void SaveMix(Mix mix) => SaveMixes([mix]);
+        private static (string Table, string Column) ArtworkLocation(ArtworkOwnerKind kind) => kind switch {
+            ArtworkOwnerKind.Song => ("Songs", "Artwork"),
+            ArtworkOwnerKind.Album => ("Albums", "CustomArtwork"),
+            ArtworkOwnerKind.Mix => ("Mixes", "CustomArtwork"),
+            _ => throw new ArgumentOutOfRangeException(nameof(kind))
+        };
 
-        public void SaveMixes(IEnumerable<Mix> mixes) {
-            Mix[] drafts = mixes.Select(mix => mix.Clone()).ToArray();
+        private static ArtworkRef? ReadCover(SqliteDataReader reader, int index, ArtworkOwnerKind kind, Guid id) {
+            return reader.IsDBNull(index) ? null : new ArtworkRef(kind, id, reader.GetInt64(index));
+        }
+
+        private static ArtworkRef? WriteArtwork(SqliteConnection connection, SqliteTransaction transaction, ArtworkOwnerKind kind, Guid id, byte[]? bytes) {
+            var (table, column) = ArtworkLocation(kind);
+            using SqliteCommand command = connection.CreateCommand();
+            command.Transaction = transaction;
+            command.CommandText = $"UPDATE {table} SET {column} = $bytes, ArtworkRevision = ArtworkRevision + 1 WHERE Id = $id RETURNING ArtworkRevision;";
+            command.Parameters.AddWithValue("$id", id.ToString());
+            command.Parameters.AddWithValue("$bytes", bytes is { Length: > 0 } ? (object)bytes : DBNull.Value);
+            long revision = (long)(command.ExecuteScalar() ?? throw new InvalidOperationException("Artwork owner was deleted."));
+
+            command.Parameters.Clear();
+            command.CommandText = "DELETE FROM ArtworkThumbnails WHERE OwnerKind = $kind AND OwnerId = $id;";
+            command.Parameters.AddWithValue("$kind", (int)kind);
+            command.Parameters.AddWithValue("$id", id.ToString());
+            command.ExecuteNonQuery();
+            return bytes is { Length: > 0 } ? new ArtworkRef(kind, id, revision) : null;
+        }
+
+        public byte[]? LoadArtwork(ArtworkRef cover) {
+            var (table, column) = ArtworkLocation(cover.Kind);
+            using SqliteConnection connection = new(connectionString);
+            connection.Open();
+            using SqliteCommand command = connection.CreateCommand();
+            command.CommandText = $"SELECT {column} FROM {table} WHERE Id = $id AND ArtworkRevision = $revision;";
+            command.Parameters.AddWithValue("$id", cover.OwnerId.ToString());
+            command.Parameters.AddWithValue("$revision", cover.Revision);
+            return command.ExecuteScalar() as byte[];
+        }
+
+        public byte[]? LoadArtworkThumbnail(ArtworkRef cover, int width) {
+            using SqliteConnection connection = new(connectionString);
+            connection.Open();
+            using SqliteCommand command = connection.CreateCommand();
+            command.CommandText = "SELECT ImageBytes FROM ArtworkThumbnails WHERE OwnerKind = $kind AND OwnerId = $id AND Revision = $revision AND PixelWidth = $width;";
+            BindArtworkKey(command, cover);
+            command.Parameters.AddWithValue("$width", width);
+            return command.ExecuteScalar() as byte[];
+        }
+
+        public void SaveArtworkThumbnail(ArtworkRef cover, int width, byte[] bytes) {
+            var (table, _) = ArtworkLocation(cover.Kind);
+            using SqliteConnection connection = new(connectionString);
+            connection.Open();
+            using SqliteCommand command = connection.CreateCommand();
+            command.CommandText = $"""
+                INSERT OR IGNORE INTO ArtworkThumbnails (OwnerKind, OwnerId, Revision, PixelWidth, ImageBytes)
+                SELECT $kind, $id, $revision, $width, $bytes
+                WHERE EXISTS (SELECT 1 FROM {table} WHERE Id = $id AND ArtworkRevision = $revision);
+                """;
+            BindArtworkKey(command, cover);
+            command.Parameters.AddWithValue("$width", width);
+            command.Parameters.AddWithValue("$bytes", bytes);
+            command.ExecuteNonQuery();
+        }
+
+        private static void BindArtworkKey(SqliteCommand command, ArtworkRef cover) {
+            command.Parameters.AddWithValue("$kind", (int)cover.Kind);
+            command.Parameters.AddWithValue("$id", cover.OwnerId.ToString());
+            command.Parameters.AddWithValue("$revision", cover.Revision);
+        }
+
+        #region Save/Load Mix Methods
+        public void SaveMix(Mix mix, bool writeArtwork = false) => SaveMixes([mix], writeArtwork);
+
+        public void SaveMixes(IEnumerable<Mix> mixes, bool writeArtwork = false) {
+            List<(Mix Item, ArtworkRef? Cover)> artworkUpdates = [];
+            Mix[] drafts = mixes.ToArray();
 
             if (drafts.Select(mix => mix.Id).Distinct().Count() != drafts.Length) {
                 throw new ArgumentException("The same mix cannot be saved twice in one batch.", nameof(mixes));
@@ -156,21 +253,21 @@ namespace zPlayer.Infrastructure.Storage
                 using (SqliteCommand command = connection.CreateCommand()) {
                     command.Transaction = transaction;
                     command.CommandText = """
-                        INSERT INTO Mixes (Id, Title, SortType, SortDescending, CustomArtwork)
-                        VALUES ($id, $title, $sortType, $sortDescending, $artwork)
+                        INSERT INTO Mixes (Id, Title, SortType, SortDescending)
+                        VALUES ($id, $title, $sortType, $sortDescending)
                         ON CONFLICT(Id) DO UPDATE SET
                             Title = excluded.Title,
                             SortType = excluded.SortType,
-                            SortDescending = excluded.SortDescending,
-                            CustomArtwork = excluded.CustomArtwork;
+                            SortDescending = excluded.SortDescending;
                     """;
                     command.Parameters.AddWithValue("$id", mix.Id.ToString());
                     command.Parameters.AddWithValue("$title", mix.Title);
                     command.Parameters.AddWithValue("$sortType", (int)mix.SortType);
                     command.Parameters.AddWithValue("$sortDescending", mix.SortDescending ? 1 : 0);
-                    command.Parameters.AddWithValue("$artwork", (object?)mix.CustomArtwork ?? DBNull.Value);
                     command.ExecuteNonQuery();
                 }
+
+                if (writeArtwork) artworkUpdates.Add((mix, WriteArtwork(connection, transaction, ArtworkOwnerKind.Mix, mix.Id, mix.CustomArtwork)));
 
                 using (SqliteCommand command = connection.CreateCommand()) {
                     command.Transaction = transaction;
@@ -200,6 +297,10 @@ namespace zPlayer.Infrastructure.Storage
                 }
             }
             transaction.Commit();
+            foreach (var update in artworkUpdates) {
+                update.Item.CustomArtwork = null;
+                update.Item.CustomCover = update.Cover;
+            }
         }
 
         public List<Mix> LoadMixes() {
@@ -212,7 +313,7 @@ namespace zPlayer.Infrastructure.Storage
 
             command.CommandText = """
                 SELECT m.Id, m.Title, ms.SongId, ms.Position, ms.AddedUtcTicks,
-                m.SortType, m.SortDescending, m.CustomArtwork
+                m.SortType, m.SortDescending, CASE WHEN length(m.CustomArtwork) > 0 THEN m.ArtworkRevision END
                 FROM Mixes AS m
                 LEFT JOIN MixSongs AS ms ON ms.MixId = m.Id
                 ORDER BY m.Title COLLATE NOCASE, m.Id, ms.Position;
@@ -228,7 +329,7 @@ namespace zPlayer.Infrastructure.Storage
                         Title = reader.GetString(1),
                         SortType = (MixSortType)reader.GetInt32(5),
                         SortDescending = reader.GetInt32(6) != 0,
-                        CustomArtwork = reader.IsDBNull(7) ? null : (byte[])reader.GetValue(7)
+                        CustomCover = ReadCover(reader, 7, ArtworkOwnerKind.Mix, mixId)
                     };
                     lookup.Add(mixId, mix);
                     mixes.Add(mix);
@@ -329,17 +430,23 @@ namespace zPlayer.Infrastructure.Storage
             transaction.Commit();
         }
 
-        public void SaveAlbum(Album album) => SaveAlbums([album]);
+        public void SaveAlbum(Album album, bool writeArtwork = false) => SaveAlbums([album], writeArtwork);
 
-        public void SaveAlbums(IEnumerable<Album> albums) {
+        public void SaveAlbums(IEnumerable<Album> albums, bool writeArtwork = false) {
+            List<(Album Item, ArtworkRef? Cover)> artworkUpdates = [];
             using SqliteConnection connection = new(connectionString);
             connection.Open();
             using SqliteTransaction transaction = connection.BeginTransaction();
 
             foreach (Album album in albums) {
                 SaveAlbumCore(connection, transaction, album);
+                if (writeArtwork) artworkUpdates.Add((album, WriteArtwork(connection, transaction, ArtworkOwnerKind.Album, album.Id, album.CustomArtwork)));
             }
             transaction.Commit();
+            foreach (var update in artworkUpdates) {
+                update.Item.CustomArtwork = null;
+                update.Item.CustomCover = update.Cover;
+            }
         }
 
         public List<Album> LoadAlbums() {
@@ -350,7 +457,7 @@ namespace zPlayer.Infrastructure.Storage
 
             using SqliteCommand command = connection.CreateCommand();
             command.CommandText = """
-                SELECT Id, Title, Artist, CustomArtwork, ArtworkSongId
+                SELECT Id, Title, Artist, CASE WHEN length(CustomArtwork) > 0 THEN ArtworkRevision END, ArtworkSongId
                 FROM Albums;
             """;
 
@@ -360,7 +467,7 @@ namespace zPlayer.Infrastructure.Storage
                     Id = Guid.Parse(reader.GetString(0)),
                     Title = reader.GetString(1),
                     Artist = reader.GetString(2),
-                    CustomArtwork = reader.IsDBNull(3) ? null : (byte[])reader.GetValue(3),
+                    CustomCover = ReadCover(reader, 3, ArtworkOwnerKind.Album, Guid.Parse(reader.GetString(0))),
                     ArtworkSongId = reader.IsDBNull(4) ? null : Guid.Parse(reader.GetString(4))
                 };
                 albums.Add(album);
@@ -413,19 +520,17 @@ namespace zPlayer.Infrastructure.Storage
             using (SqliteCommand command = connection.CreateCommand()) {
                 command.Transaction = transaction;
                 command.CommandText = """
-                    INSERT INTO Albums (Id, Title, Artist, CustomArtwork, ArtworkSongId)
-                    VALUES ($id, $title, $artist, $artwork, $artworkSongId)
+                    INSERT INTO Albums (Id, Title, Artist, ArtworkSongId)
+                    VALUES ($id, $title, $artist, $artworkSongId)
                     ON CONFLICT(Id) DO UPDATE SET
                         Title = excluded.Title,
                         Artist = excluded.Artist,
-                        CustomArtwork = excluded.CustomArtwork,
                         ArtworkSongId = excluded.ArtworkSongId;
                 """;
 
                 command.Parameters.AddWithValue("$id", album.Id.ToString());
                 command.Parameters.AddWithValue("$title", album.Title);
                 command.Parameters.AddWithValue("$artist", album.Artist);
-                command.Parameters.AddWithValue("$artwork", (object?)album.CustomArtwork ?? DBNull.Value);
                 command.Parameters.AddWithValue("$artworkSongId", album.ArtworkSongId.HasValue ? album.ArtworkSongId.Value.ToString() : DBNull.Value);
                 command.ExecuteNonQuery();
             }
@@ -474,17 +579,23 @@ namespace zPlayer.Infrastructure.Storage
             transaction.Commit();
         }
 
-        public void SaveSong(Song song) => SaveSongs([song]);
+        public void SaveSong(Song song, bool writeArtwork = false) => SaveSongs([song], writeArtwork);
 
-        public void SaveSongs(IEnumerable<Song> songs) {
+        public void SaveSongs(IEnumerable<Song> songs, bool writeArtwork = false, Func<Song, byte[]?>? readArtwork = null) {
+            List<(Song Item, ArtworkRef? Cover)> artworkUpdates = [];
             using SqliteConnection connection = new(connectionString);
             connection.Open();
             using SqliteTransaction transaction = connection.BeginTransaction();
 
             foreach (Song song in songs) {
                 SaveSongCore(connection, transaction, song);
+                if (writeArtwork) artworkUpdates.Add((song, WriteArtwork(connection, transaction, ArtworkOwnerKind.Song, song.Id, readArtwork == null ? song.Artwork : readArtwork(song))));
             }
             transaction.Commit();
+            foreach (var update in artworkUpdates) {
+                update.Item.Artwork = null;
+                update.Item.Cover = update.Cover;
+            }
         }
 
         public List<Song> LoadSongs() {
@@ -496,7 +607,7 @@ namespace zPlayer.Infrastructure.Storage
             command.CommandText = """
                 SELECT Id, Title, Artist, FilePath,
                        DurationTicks, AlbumTitle,
-                       AlbumArtist, Artwork, AlbumId, AlbumPosIndex
+                       AlbumArtist, CASE WHEN length(Artwork) > 0 THEN ArtworkRevision END, AlbumId, AlbumPosIndex
                 FROM Songs
                 ORDER BY AlbumId, AlbumPosIndex, rowid;
             """;
@@ -511,7 +622,7 @@ namespace zPlayer.Infrastructure.Storage
                     Duration = TimeSpan.FromTicks(reader.GetInt64(4)),
                     AlbumTitle = reader.GetString(5),
                     AlbumArtist = reader.GetString(6),
-                    Artwork = reader.IsDBNull(7) ? null : (byte[])reader.GetValue(7),
+                    Cover = ReadCover(reader, 7, ArtworkOwnerKind.Song, Guid.Parse(reader.GetString(0))),
                     AlbumId = reader.IsDBNull(8) ? null : Guid.Parse(reader.GetString(8)),
                     AlbumPosIndex = reader.GetInt32(9)
                 };
@@ -528,13 +639,13 @@ namespace zPlayer.Infrastructure.Storage
                 INSERT INTO Songs (
                     Id, Title, Artist, FilePath,
                     DurationTicks, AlbumTitle,
-                    AlbumArtist, Artwork,
+                    AlbumArtist,
                     AlbumId, AlbumPosIndex
                 )
                 VALUES (
                     $id, $title, $artist, $path,
                     $duration, $album, $albumArtist,
-                    $artwork, $albumId, $albumPosIndex
+                    $albumId, $albumPosIndex
                 )
                 ON CONFLICT(Id) DO UPDATE SET
                     Title = excluded.Title,
@@ -543,7 +654,6 @@ namespace zPlayer.Infrastructure.Storage
                     DurationTicks = excluded.DurationTicks,
                     AlbumTitle = excluded.AlbumTitle,
                     AlbumArtist = excluded.AlbumArtist,
-                    Artwork = excluded.Artwork,
                     AlbumId = excluded.AlbumId,
                     AlbumPosIndex = excluded.AlbumPosIndex;
              """;
@@ -555,7 +665,6 @@ namespace zPlayer.Infrastructure.Storage
             command.Parameters.AddWithValue("$duration", song.Duration.Ticks);
             command.Parameters.AddWithValue("$album", song.AlbumTitle);
             command.Parameters.AddWithValue("$albumArtist", song.AlbumArtist);
-            command.Parameters.AddWithValue("$artwork", (object?)song.Artwork ?? DBNull.Value);
             command.Parameters.AddWithValue("$albumId", song.AlbumId.HasValue ? song.AlbumId.Value.ToString() : DBNull.Value);
             command.Parameters.AddWithValue("$albumPosIndex", song.AlbumPosIndex);
 

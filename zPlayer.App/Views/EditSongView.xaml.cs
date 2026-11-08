@@ -5,12 +5,16 @@ using System.Windows.Controls;
 using zPlayer.App.Converters;
 using zPlayer.Core;
 using zPlayer.Infrastructure;
+using zPlayer.Infrastructure.Storage;
 
 namespace zPlayer.App.Views
 {
     public partial class EditSongView : UserControl
     {
         private readonly Song draft;
+        private readonly MusicLibraryDatabase database;
+        private int artworkRequest;
+        private bool saving;
         private readonly Album unassignedAlbum;
         private bool initializing = true;
         private byte[]? customArtwork;
@@ -18,9 +22,11 @@ namespace zPlayer.App.Views
         public event Action? CloseRequested;
         public event Action<Song>? SaveRequested;
 
-        public EditSongView(Song song, MusicLibrary library) {
+        public EditSongView(Song song, MusicLibrary library, byte[]? originalArtwork, MusicLibraryDatabase database) {
+            this.database = database;
             draft = song.Clone();
-            customArtwork = draft.Artwork?.ToArray();
+            customArtwork = originalArtwork;
+            draft.Artwork = originalArtwork;
             InitializeComponent();
             DataContext = draft;
 
@@ -42,7 +48,8 @@ namespace zPlayer.App.Views
             CloseRequested?.Invoke();
         }
 
-        private void Save_Click(object sender, RoutedEventArgs e) {
+        private async void Save_Click(object sender, RoutedEventArgs e) {
+            if (saving) return;
             string title = draft.Title.Trim();
             string artist = draft.Artist.Trim();
 
@@ -63,42 +70,54 @@ namespace zPlayer.App.Views
                 draft.AlbumTitle = selectedAlbumId.HasValue ? selectedAlbum!.Title : "Unknown Album";
                 draft.AlbumArtist = selectedAlbumId.HasValue ? selectedAlbum!.Artist : "Unknown Artist";
             }
-            if (!RefreshArtwork()) return;
-            SaveRequested?.Invoke(draft);
+            saving = true;
+            IsEnabled = false;
+            try {
+                if (await RefreshArtwork() && IsLoaded) SaveRequested?.Invoke(draft);
+            }
+            finally {
+                IsEnabled = true;
+                saving = false;
+            }
         }
 
         private void ArtworkModeBox_SelectionChanged(object sender, SelectionChangedEventArgs e) {
             if (initializing) return;
-            RefreshArtwork();
+            _ = RefreshArtwork();
         }
 
         private void AlbumBox_SelectionChanged(object sender, SelectionChangedEventArgs e) {
             if (initializing) return;
-            if (ArtworkModeBox.SelectedIndex == 1) RefreshArtwork();
+            if (ArtworkModeBox.SelectedIndex == 1) _ = RefreshArtwork();
         }
 
-        private bool RefreshArtwork() {
+        private async Task<bool> RefreshArtwork() {
+            int request = ++artworkRequest;
+            byte[]? bytes;
             BrowseArtworkButton.Visibility = ArtworkModeBox.SelectedIndex == 2 ? Visibility.Visible : Visibility.Collapsed;
             try {
                 switch (ArtworkModeBox.SelectedIndex) {
                     case 0: // Embedded in File
                         AudiofileMetadataReader reader = new();
-                        draft.Artwork = reader.Read(draft.FilePath).Artwork;
+                        bytes = await Task.Run(() => reader.Read(draft.FilePath).Artwork);
                         break;
                     case 1: // Same as Album
                         Album? album = AlbumBox.SelectedItem as Album;
-                        draft.Artwork = album == null || ReferenceEquals(album, unassignedAlbum) ? null : album.GetArtwork()?.ToArray();
+                        bytes = album?.Cover is { } cover ? await Task.Run(() => database.LoadArtwork(cover))
+                            ?? throw new InvalidOperationException("The album cover is unavailable.") : null;
                         break;
                     case 2: // Custom Image
-                        draft.Artwork = customArtwork;
+                        bytes = customArtwork;
                         break;
                     default:
                         return false;
                 }
+                if (request != artworkRequest || !IsLoaded) return false;
+                draft.Artwork = bytes;
                 return true;
             }
             catch (Exception ex) {
-                draft.Artwork = null;
+                if (request != artworkRequest || !IsLoaded) return false;
                 MessageBox.Show($"Could not load artwork:\n{ex.Message}", "Artwork Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return false;
             }
@@ -116,7 +135,7 @@ namespace zPlayer.App.Views
                 byte[] bytes = File.ReadAllBytes(dialog.FileName);
                 new ArtworkConverter().BmpFromBytes(bytes);
                 customArtwork = bytes;
-                RefreshArtwork();
+                _ = RefreshArtwork();
             }
             catch (Exception ex) {
                 MessageBox.Show($"Could not load image:\n{ex.Message}", "Artwork Error", MessageBoxButton.OK, MessageBoxImage.Error);

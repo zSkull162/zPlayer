@@ -5,6 +5,8 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
 using zPlayer.App.Converters;
+using zPlayer.App.Artwork;
+using System.Threading;
 using zPlayer.Core;
 
 namespace zPlayer.App.Views
@@ -18,10 +20,10 @@ namespace zPlayer.App.Views
         public event Action? CloseRequested;
         public event Action<Mix>? SaveRequested;
 
-        public EditMixView(MusicLibrary library, Mix mix) {
+        public EditMixView(MusicLibrary library, Mix mix, byte[]? originalArtwork) {
             draft = mix.Clone();
             draft.RefreshSongs(library.Songs);
-            customArtwork = draft.CustomArtwork?.ToArray();
+            customArtwork = originalArtwork;
 
             InitializeComponent();
             DataContext = draft;
@@ -35,12 +37,32 @@ namespace zPlayer.App.Views
             if (!initializing) RefreshArtwork();
         }
 
-        private void RefreshArtwork() {
+        private int previewVersion;
+
+        private async void RefreshArtwork() {
+            int version = ++previewVersion;
             bool custom = ArtworkModeBox.SelectedIndex == 1;
             BrowseArtworkButton.Visibility = custom ? Visibility.Visible : Visibility.Collapsed;
             draft.CustomArtwork = custom ? customArtwork : null;
 
-            BindingOperations.GetBindingExpression(ArtworkPreview, ImageBrush.ImageSourceProperty)?.UpdateTarget();
+            ArtworkPreview.ImageSource = ArtworkConverter.DefaultArtwork;
+            if (draft.CustomArtwork is { Length: > 0 } bytes) {
+                ArtworkPreview.ImageSource = new ArtworkConverter().BmpFromBytes(bytes, 384);
+                return;
+            }
+
+            var savedCover = draft.CustomCover;
+            draft.CustomCover = null;
+            var automaticCover = draft.Cover;
+            draft.CustomCover = savedCover;
+            if (automaticCover is not { } cover || CoverArt.Loader is not { } loader) return;
+            try {
+                var preview = await loader.GetAsync(cover, 384, CancellationToken.None);
+                if (previewVersion == version && preview != null) ArtworkPreview.ImageSource = preview;
+            }
+            catch (Exception ex) {
+                System.Diagnostics.Debug.WriteLine(ex.Message);
+            }
         }
 
         private void BrowseArtwork_Click(object sender, RoutedEventArgs e) {

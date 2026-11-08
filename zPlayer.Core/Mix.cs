@@ -23,8 +23,8 @@ namespace zPlayer.Core
         public IReadOnlyList<Song> Songs => resolvedSongs;
 
         public byte[]? CustomArtwork { get; set; }
-        public byte[]? Artwork => CustomArtwork is { Length: > 0 } ? CustomArtwork
-            : resolvedSongs.FirstOrDefault(song => song.Artwork is { Length: > 0 })?.Artwork;
+        public ArtworkRef? CustomCover { get; set; }
+        public ArtworkRef? Cover => CustomCover ?? resolvedSongs.FirstOrDefault(song => song.Cover.HasValue)?.Cover;
 
         public int SongCount => Entries.Count;
         public TimeSpan Duration => TimeSpan.FromTicks(resolvedSongs.Sum(song => song.Duration.Ticks));
@@ -84,6 +84,7 @@ namespace zPlayer.Core
                 SortType = SortType,
                 SortDescending = SortDescending,
                 CustomArtwork = CustomArtwork?.ToArray(),
+                CustomCover = CustomCover,
                 Entries = [.. Entries],
                 resolvedSongs = [.. resolvedSongs]
             };

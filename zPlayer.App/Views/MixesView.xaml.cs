@@ -11,6 +11,8 @@ namespace zPlayer.App.Views
 
     public partial class MixesView : UserControl
     {
+        private const int PageSize = 40;
+        private int page;
         private readonly MusicLibrary library;
         private readonly SortState sortState;
         private bool initializing = true;
@@ -64,7 +66,15 @@ namespace zPlayer.App.Views
             };
 
             List<object> items = [new CreateMixTile()];
-            items.AddRange(sorted.ThenBy(mix => mix.Title, StringComparer.OrdinalIgnoreCase));
+            var ordered = sorted.ThenBy(mix => mix.Title, StringComparer.OrdinalIgnoreCase).ToList();
+            int pageCount = Math.Max(1, (ordered.Count + PageSize - 1) / PageSize);
+            page = Math.Clamp(page, 0, pageCount - 1);
+            items.AddRange(ordered.Skip(page * PageSize).Take(PageSize));
+
+            PageText.Text = $"Page {page + 1} of {pageCount}";
+            PageControls.Visibility = pageCount > 1 ? Visibility.Visible : Visibility.Collapsed;
+            PreviousPageButton.IsEnabled = page > 0;
+            NextPageButton.IsEnabled = page + 1 < pageCount;
 
             MixesGrid.ItemsSource = items;
             foreach (Mix mix in items.OfType<Mix>()) {
@@ -73,16 +83,29 @@ namespace zPlayer.App.Views
             MixesInLibraryText.Text = $"— {library.Mixes.Count} in library";
         }
 
+        private void PreviousPage_Click(object sender, RoutedEventArgs e) {
+            page--;
+            RefreshMixes();
+        }
+
+        private void NextPage_Click(object sender, RoutedEventArgs e) {
+            page++;
+            RefreshMixes();
+        }
+
         private void SortBox_SelectionChanged(object sender, SelectionChangedEventArgs e) {
             if (initializing) return;
 
             sortState.TypeIndex = SortTypeBox.SelectedIndex;
             sortState.OrderIndex = SortOrderBox.SelectedIndex;
+            page = 0;
             RefreshMixes();
         }
 
         private void MixSearchBox_TextChanged(object sender, TextChangedEventArgs e) {
-            if (!initializing) RefreshMixes();
+            if (initializing) return;
+            page = 0;
+            RefreshMixes();
         }
         #endregion
 
