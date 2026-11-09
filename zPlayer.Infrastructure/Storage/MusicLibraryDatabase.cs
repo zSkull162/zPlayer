@@ -152,6 +152,7 @@ namespace zPlayer.Infrastructure.Storage
             command.ExecuteNonQuery();
         }
 
+        #region Artwork
         private static (string Table, string Column) ArtworkLocation(ArtworkOwnerKind kind) => kind switch {
             ArtworkOwnerKind.Song => ("Songs", "Artwork"),
             ArtworkOwnerKind.Album => ("Albums", "CustomArtwork"),
@@ -181,10 +182,15 @@ namespace zPlayer.Infrastructure.Storage
         }
 
         public byte[]? LoadArtwork(ArtworkRef cover) {
-            var (table, column) = ArtworkLocation(cover.Kind);
             using SqliteConnection connection = new(connectionString);
             connection.Open();
+            return LoadArtwork(connection, null, cover);
+        }
+
+        private static byte[]? LoadArtwork(SqliteConnection connection, SqliteTransaction? transaction, ArtworkRef cover) {
+            var (table, column) = ArtworkLocation(cover.Kind);
             using SqliteCommand command = connection.CreateCommand();
+            command.Transaction = transaction;
             command.CommandText = $"SELECT {column} FROM {table} WHERE Id = $id AND ArtworkRevision = $revision;";
             command.Parameters.AddWithValue("$id", cover.OwnerId.ToString());
             command.Parameters.AddWithValue("$revision", cover.Revision);
@@ -222,6 +228,7 @@ namespace zPlayer.Infrastructure.Storage
             command.Parameters.AddWithValue("$id", cover.OwnerId.ToString());
             command.Parameters.AddWithValue("$revision", cover.Revision);
         }
+        #endregion
 
         #region Save/Load Mix Methods
         public void SaveMix(Mix mix, bool writeArtwork = false) => SaveMixes([mix], writeArtwork);
@@ -581,7 +588,7 @@ namespace zPlayer.Infrastructure.Storage
 
         public void SaveSong(Song song, bool writeArtwork = false) => SaveSongs([song], writeArtwork);
 
-        public void SaveSongs(IEnumerable<Song> songs, bool writeArtwork = false, Func<Song, byte[]?>? readArtwork = null) {
+        public void SaveSongs(IEnumerable<Song> songs, bool writeArtwork = false, Func<Song, byte[]?>? readArtwork = null, Func<Song, ArtworkRef?>? copyArtworkFrom = null) {
             List<(Song Item, ArtworkRef? Cover)> artworkUpdates = [];
             using SqliteConnection connection = new(connectionString);
             connection.Open();
@@ -589,7 +596,18 @@ namespace zPlayer.Infrastructure.Storage
 
             foreach (Song song in songs) {
                 SaveSongCore(connection, transaction, song);
-                if (writeArtwork) artworkUpdates.Add((song, WriteArtwork(connection, transaction, ArtworkOwnerKind.Song, song.Id, readArtwork == null ? song.Artwork : readArtwork(song))));
+                if (!writeArtwork) continue;
+                byte[]? artwork;
+
+                if (copyArtworkFrom != null) {
+                    if (copyArtworkFrom(song) is not { } source) continue;
+                    if (source.Kind == ArtworkOwnerKind.Song && source.OwnerId == song.Id) continue;
+                    artwork = LoadArtwork(connection, transaction, source) ?? throw new InvalidOperationException("The album cover is unavailable.");
+                }
+                else artwork = readArtwork == null ? song.Artwork : readArtwork(song);
+
+                ArtworkRef? cover = WriteArtwork(connection, transaction, ArtworkOwnerKind.Song, song.Id, artwork);
+                artworkUpdates.Add((song, cover));
             }
             transaction.Commit();
             foreach (var update in artworkUpdates) {

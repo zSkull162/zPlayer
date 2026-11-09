@@ -8,7 +8,7 @@ using zPlayer.App.Converters;
 namespace zPlayer.App.Views
 {
     public enum MultiArtworkMode {
-        Keep, Automatic, Custom
+        Keep, Automatic, SameAsAlbum, Custom
     }
 
     public sealed record MultiEditChanges(string? Artist, MultiArtworkMode ArtworkMode, byte[]? Artwork);
@@ -16,17 +16,21 @@ namespace zPlayer.App.Views
     public partial class MultiEditView : UserControl
     {
         private byte[]? artwork;
+        private bool editingAlbums;
 
         public event Action? CloseRequested;
         public event Action<MultiEditChanges>? SaveRequested;
 
         public MultiEditView(int count, bool editingAlbums) {
+            this.editingAlbums = editingAlbums;
             InitializeComponent();
 
             ViewTitle.Text = $"Editing {count} {(editingAlbums ? "Albums" : "Songs")}";
 
             ArtistTextBox.Text = "-";
             AutomaticArtworkItem.Content = editingAlbums ? "Automatic" : "Embedded in each file";
+            SameAsAlbumItem.Visibility = editingAlbums ? Visibility.Collapsed : Visibility.Visible;
+            SameAsAlbumItem.IsEnabled = !editingAlbums;
 
             CustomImageFilePathText.Text = "No image selected";
             CustomImageFilePathText.Visibility = Visibility.Collapsed;
@@ -34,7 +38,8 @@ namespace zPlayer.App.Views
 
         private void ArtworkModeBox_SelectionChanged(object sender, SelectionChangedEventArgs e) {
             if (BrowseArtworkButton == null) return;
-            bool customMode = ArtworkModeBox.SelectedIndex == 2;
+            bool customMode = ArtworkModeBox.SelectedIndex == 3;
+
             BrowseArtworkButton.Visibility = customMode ? Visibility.Visible : Visibility.Collapsed;
             CustomImageFilePathText.Visibility = customMode ? Visibility.Visible : Visibility.Collapsed;
         }

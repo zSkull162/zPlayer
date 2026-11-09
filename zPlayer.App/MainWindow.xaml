@@ -8,8 +8,8 @@
         xmlns:local="clr-namespace:zPlayer.App"
         xmlns:converters="clr-namespace:zPlayer.App.Converters"
         mc:Ignorable="d"
-        Title="zPlayer" Height="720" Width="1280"
-        ResizeMode="NoResize"
+        Title="zPlayer" MinHeight="360" MinWidth="640"
+        Height="720" Width="1280"
         WindowStartupLocation="CenterScreen">
     <Window.Background>
         <SolidColorBrush Color="{StaticResource BackgroundColor}"/>
@@ -218,9 +218,8 @@
 
                 <Border BorderThickness="0,2,2,0" BorderBrush="{StaticResource BorderBrush}"
                             Grid.RowSpan="3" Grid.Column="0" Margin="0,-2,-2,0">
-                    <Border.Background>
-                        <ImageBrush x:Name="CurrentSongArtwork" art:CoverArt.Enabled="True" Stretch="UniformToFill"/>
-                    </Border.Background>
+                    <Image x:Name="CurrentSongArtwork" art:CoverArt.Enabled="True" Stretch="UniformToFill"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
                 <!--Loop, Shuffle, and Title/Artist-->
                 <Grid Grid.Row="0" Grid.Column="1">

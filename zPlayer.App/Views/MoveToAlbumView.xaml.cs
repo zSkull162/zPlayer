@@ -9,11 +9,14 @@ namespace zPlayer.App.Views
 {
     public partial class MoveToAlbumView : UserControl
     {
-        private readonly Song draft;
+        private readonly Album unassignedAlbum = new() {
+            Title = "(No Album)",
+            Artist = ""
+        };
 
         public Album? SourceAlbum { get; }
         public event Action? CloseRequested;
-        public event Action<Album>? MoveRequested;
+        public event Action<Album?>? MoveRequested;
 
         public MoveToAlbumView(MusicLibrary library, Song song) : this(library, [song]) { }
 
@@ -31,7 +34,12 @@ namespace zPlayer.App.Views
                 AlbumTitle = sameAlbum ? songs[0].AlbumTitle : "(Multiple albums)"
             };
 
-            AlbumBox.ItemsSource = library.GetAlbums().Where(album => !sameAlbum || album.Id != sourceId).ToList();
+            List<Album> choices = library.GetAlbums().Where(album => !sameAlbum || album.Id != sourceId).ToList();
+            if (songs.Any(song => song.AlbumId.HasValue)) {
+                choices.Insert(0, unassignedAlbum);
+            }
+            AlbumBox.ItemsSource = choices;
+            AlbumBox.SelectedIndex = -1;
             AlbumBox.SelectedIndex = -1;
         }
 
@@ -41,7 +49,9 @@ namespace zPlayer.App.Views
         }
 
         private void Move_Click(object sender, RoutedEventArgs e) {
-            if (AlbumBox.SelectedItem is Album destination) MoveRequested?.Invoke(destination);
+            if (AlbumBox.SelectedItem is Album destination) {
+                MoveRequested?.Invoke(ReferenceEquals(destination, unassignedAlbum) ? null : destination);
+            }
         }
 
         private void Cancel_Click(object sender, RoutedEventArgs e) {

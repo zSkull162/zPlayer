@@ -502,15 +502,20 @@ namespace zPlayer.App
             view.SaveRequested += changes => {
                 try {
                     Song[] drafts = songs.Select(song => song.Clone()).ToArray();
-
                     foreach (Song draft in drafts) {
                         if (changes.Artist != null) draft.Artist = changes.Artist;
                     }
 
-                    database.SaveSongs(drafts, writeArtwork: changes.ArtworkMode != MultiArtworkMode.Keep,
-                        readArtwork: draft => changes.ArtworkMode == MultiArtworkMode.Automatic
-                            ? metadataReader.Read(draft.FilePath).Artwork
-                            : changes.Artwork);
+                    if (changes.ArtworkMode == MultiArtworkMode.SameAsAlbum) {
+                        database.SaveSongs(drafts, writeArtwork: true, copyArtworkFrom: draft =>
+                            draft.AlbumId is Guid albumId ? library.GetAlbum(albumId)?.Cover : null);
+                    }
+                    else {
+                        database.SaveSongs(drafts, writeArtwork: changes.ArtworkMode != MultiArtworkMode.Keep,
+                            readArtwork: draft => changes.ArtworkMode == MultiArtworkMode.Automatic
+                                ? metadataReader.Read(draft.FilePath).Artwork
+                                : changes.Artwork);
+                    }
                     ApplySavedSongs(drafts);
                 }
                 catch (Exception ex) {
@@ -629,58 +634,25 @@ namespace zPlayer.App
             OpenPopup(view);
         }
 
-        private void ShowMoveToAlbum(Song song) {
-            MoveToAlbumView view = new(library, song);
-
-            view.CloseRequested += ClosePopup;
-            view.MoveRequested += selectedAlbum => {
-                Album? destination = library.GetAlbum(selectedAlbum.Id);
-                if (destination == null || !library.Songs.Any(existing => existing.Id == song.Id)) {
-                    MessageBox.Show(this, "The song or destination album is no longer in the library.", "Move Song", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-                if (destination.Id == song.AlbumId) return;
-
-                Song updated = song.Clone();
-                updated.AlbumId = destination.Id;
-                updated.AlbumTitle = destination.Title;
-                updated.AlbumArtist = destination.Artist;
-                updated.AlbumPosIndex = destination.Songs.Select(existing => existing.AlbumPosIndex).DefaultIfEmpty(-1).Max() + 1;
-
-                try {
-                    database.SaveSong(updated);
-                }
-                catch (Exception ex) {
-                    MessageBox.Show(this, $"Could not move the song:\n{ex.Message}", "Move Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    return;
-                }
-                foreach (Album album in library.Albums) {
-                    album.Songs.RemoveAll(existing => existing.Id == song.Id);
-                }
-                song.ApplyEdits(updated);
-                destination.Songs.Add(song);
-
-                RefreshAfterSongEdit();
-                ClosePopup();
-            };
-            OpenPopup(view);
-        }
-
         private void ShowMoveSongsToAlbum(Song[] songs) {
             MoveToAlbumView view = new(library, songs);
             view.CloseRequested += ClosePopup;
             view.MoveRequested += selectedAlbum => {
-                Album? destination = library.GetAlbum(selectedAlbum.Id);
-                if (destination == null) return;
+                Album? destination = selectedAlbum == null ? null : library.GetAlbum(selectedAlbum.Id);
 
-                int nextPosition = destination.Songs.Select(song => song.AlbumPosIndex).DefaultIfEmpty(-1).Max() + 1;
-                Song[] drafts = songs.Where(song => song.AlbumId != destination.Id).Select(song => song.Clone()).ToArray();
+                if (selectedAlbum != null && destination == null) {
+                    MessageBox.Show(this, "That album is no longer in the library.", "Move Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+                Guid? destinationId = destination?.Id;
+                int nextPosition = destination == null ? 0 : destination.Songs.Select(song => song.AlbumPosIndex).DefaultIfEmpty(-1).Max() + 1;
 
+                Song[] drafts = songs.Where(song => song.AlbumId != destinationId).Select(song => song.Clone()).ToArray();
                 foreach (Song draft in drafts) {
-                    draft.AlbumId = destination.Id;
-                    draft.AlbumTitle = destination.Title;
-                    draft.AlbumArtist = destination.Artist;
-                    draft.AlbumPosIndex = nextPosition++;
+                    draft.AlbumId = destinationId;
+                    draft.AlbumTitle = destination?.Title ?? "Unknown Album";
+                    draft.AlbumArtist = destination?.Artist ?? "Unknown Artist";
+                    draft.AlbumPosIndex = destination == null ? 0 : nextPosition++;
                 }
 
                 try {
