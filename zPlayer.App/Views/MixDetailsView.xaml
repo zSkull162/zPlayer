@@ -109,15 +109,17 @@
         <!--Songs column headers-->
         <Grid Grid.Row="3" Margin="3,0,36,0">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="26"/>
+                <ColumnDefinition Width="36"/>
+                <ColumnDefinition Width="50"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="100"/>
+                <ColumnDefinition Width="52"/>
             </Grid.ColumnDefinitions>
             <TextBlock Text="#" HorizontalAlignment="Center"
                     Style="{StaticResource Header}"/>
-            <TextBlock Grid.Column="1" Text="Title &amp; Artist" HorizontalAlignment="Left" Padding="54,0,0,0"
+            <TextBlock Grid.Column="2" Text="Title &amp; Artist" HorizontalAlignment="Left"
                     Style="{StaticResource Header}"/>
-            <TextBlock Grid.Column="2" Text="Length" HorizontalAlignment="Right"
+            <TextBlock Grid.Column="3" Text="Length" HorizontalAlignment="Right"
                     Style="{StaticResource Header}"/>
         </Grid>
 
@@ -152,6 +154,7 @@
                 PreviewMouseRightButtonDown="MixSongsGrid_RightMouseDown"
                 ContextMenuOpening="MixSongsGrid_ContextMenuOpening"
                 PreviewMouseMove="MixSongsGrid_PreviewMouseMove"
+                PreviewDragLeave="SongsGrid_DragLeave"
                 PreviewDragOver="MixSongsGrid_DragOver"
                 PreviewDrop="MixSongsGrid_Drop"
                 CanUserSortColumns="False" AllowDrop="True">

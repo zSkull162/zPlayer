@@ -347,7 +347,7 @@ namespace zPlayer.App.Playback
                     PlaybackError?.Invoke(message);
                     return;
                 }
-                if (reader == null || reader.Position < reader.Length) return;
+                if (reader == null) return;
                 if (Loop == LoopMode.One) {
                     StartCurrentSong();
                     return;

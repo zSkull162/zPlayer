@@ -21,15 +21,16 @@ namespace zPlayer.App.Views
         }
         private Point dragStart;
         private Song? pendingDragSong;
+        private SongDragFeedback? dragFeedback;
         public event Action<Album, IReadOnlyList<Song>>? SongOrderRequested;
 
         private readonly Album album;
         public SongCommands Commands { get; }
 
+        public event Action? BackRequested;
         public event Action<Song[]>? PlayRequested;
         public event Action<Song[]>? AddToQueueRequested;
         public event Action<Song[]>? InsertNextRequested;
-        public event Action? BackRequested;
         public event Action<Album>? EditAlbumRequested;
 
         public AlbumDetailsView(Album album, SongCommands songCommands) {
@@ -135,7 +136,23 @@ namespace zPlayer.App.Views
             Song song = pendingDragSong;
             pendingDragSong = null;
             DataObject data = new(typeof(AlbumSongDragData), new AlbumSongDragData(album, song));
-            DragDrop.DoDragDrop(AlbumSongsGrid, data, DragDropEffects.Move);
+
+            using SongDragFeedback feedback = new(AlbumSongsGrid, song);
+            dragFeedback = feedback;
+            try {
+                DragDrop.DoDragDrop(AlbumSongsGrid, data, DragDropEffects.Move);
+            }
+            finally {
+                dragFeedback = null;
+            }
+        }
+
+        private void SongsGrid_DragLeave(object sender, DragEventArgs e) {
+            if (sender is not DataGrid grid) return;
+
+            Point pointer = e.GetPosition(grid);
+            Rect bounds = new(new Point(0, 0), grid.RenderSize);
+            if (!bounds.Contains(pointer)) dragFeedback?.Hide();
         }
 
         private bool TryGetDraggedSong(DragEventArgs e, out Song? song) {
@@ -150,8 +167,15 @@ namespace zPlayer.App.Views
         }
 
         private void AlbumSongsGrid_DragOver(object sender, DragEventArgs e) {
-            e.Effects = TryGetDraggedSong(e, out _) ? DragDropEffects.Move : DragDropEffects.None;
             e.Handled = true;
+            e.Effects = DragDropEffects.None;
+
+            if (!TryGetDraggedSong(e, out _) || !SongDragFeedback.TryGetSlot(AlbumSongsGrid, e, out _, out double lineY)) {
+                dragFeedback?.Hide();
+                return;
+            }
+            e.Effects = DragDropEffects.Move;
+            dragFeedback?.Show(e, lineY);
         }
 
         private void AlbumSongsGrid_Drop(object sender, DragEventArgs e) {
@@ -163,7 +187,9 @@ namespace zPlayer.App.Views
             List<Song> reordered = album.Songs.ToList();
 
             int sourceIndex = reordered.IndexOf(draggedSong!);
-            int insertIndex = reordered.Count;
+            if (!SongDragFeedback.TryGetSlot(AlbumSongsGrid, e, out int insertIndex, out _)) {
+                return;
+            }
 
             if (e.OriginalSource is DependencyObject source &&
                     ItemsControl.ContainerFromElement(AlbumSongsGrid, source) is DataGridRow { Item: Song targetSong } targetRow) {
