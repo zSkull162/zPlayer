@@ -10,7 +10,6 @@
              mc:Ignorable="d" 
              d:DesignHeight="620" d:DesignWidth="1030">
     <UserControl.Resources>
-
         <Style TargetType="TextBlock" x:Key="MixTitle">
             <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
             <Setter Property="FontSize" Value="14"/>
@@ -33,7 +32,7 @@
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="180"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                     <TextBlock Text="Mixes" Style="{StaticResource WindowTitle}"/>
@@ -41,7 +40,10 @@
                         Style="{StaticResource WindowTitle}" FontWeight="Normal" Opacity="0.5"/>
                 </StackPanel>
 
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                    <TextBox x:Name="MixSearchBox" TextChanged="MixSearchBox_TextChanged"
+                        Style="{StaticResource SearchBox}" Tag="Search Mixes..." FontSize="12" MinWidth="160"/>
+                    
                     <ComboBox Name="SortTypeBox" SelectionChanged="SortBox_SelectionChanged"
                               SelectedIndex="0" Style="{StaticResource HeaderComboBox}"
                               MinWidth="75" Margin="0,0,12,0">
@@ -50,16 +52,11 @@
                         <ComboBoxItem Content="Length"/>
                     </ComboBox>
                     <ComboBox x:Name="SortOrderBox" SelectionChanged="SortBox_SelectionChanged"
-                              SelectedIndex="0" Style="{StaticResource HeaderComboBox}"
-                              MinWidth="75" Margin="0,0,12,0">
+                              SelectedIndex="0" Style="{StaticResource HeaderComboBox}" MinWidth="75">
                         <ComboBoxItem Content="A-Z"/>
                         <ComboBoxItem Content="Z-A"/>
                     </ComboBox>
                 </StackPanel>
-
-                <TextBox x:Name="MixSearchBox" TextChanged="MixSearchBox_TextChanged" Grid.Column="1"
-                        Style="{StaticResource SearchBox}" Tag="Search Mixes..." FontSize="12"
-                        Width="180" HorizontalAlignment="Right"/>
             </Grid>
         </Border>
 

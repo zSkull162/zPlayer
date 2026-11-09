@@ -41,7 +41,7 @@
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="180"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                     <TextBlock Text="Albums" Style="{StaticResource WindowTitle}"/>
@@ -49,7 +49,10 @@
                         Style="{StaticResource WindowTitle}" FontWeight="Normal" Opacity="0.5"/>
                 </StackPanel>
 
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                    <TextBox x:Name="AlbumSearchBox" TextChanged="AlbumSearchBox_TextChanged"
+                        Style="{StaticResource SearchBox}" Tag="Search Albums..." FontSize="12" MinWidth="160"/>
+                    
                     <ComboBox Name="SortTypeBox" SelectionChanged="SortBox_SelectionChanged"
                               SelectedIndex="0" Style="{StaticResource HeaderComboBox}"
                               MinWidth="75" Margin="0,0,12,0">
@@ -58,16 +61,11 @@
                         <ComboBoxItem Content="Length"/> <!--Change SortOrderBox to "High-Low" and "Low-High" if this is selected-->
                     </ComboBox>
                     <ComboBox x:Name="SortOrderBox" SelectionChanged="SortBox_SelectionChanged"
-                              SelectedIndex="0" Style="{StaticResource HeaderComboBox}"
-                              MinWidth="75" Margin="0,0,12,0">
+                              SelectedIndex="0" Style="{StaticResource HeaderComboBox}" MinWidth="75">
                         <ComboBoxItem Content="A-Z"/>
                         <ComboBoxItem Content="Z-A"/>
                     </ComboBox>
                 </StackPanel>
-
-                <TextBox x:Name="AlbumSearchBox" TextChanged="AlbumSearchBox_TextChanged"
-                        Style="{StaticResource SearchBox}" Tag="Search Albums..." FontSize="12"
-                        Grid.Column="1" Width="180" HorizontalAlignment="Right"/>
             </Grid>
         </Border>
         

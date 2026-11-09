@@ -2,7 +2,7 @@
         Icon="/Assets/Icons/zPlayer.ico"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:art="clr-namespace:zPlayer.App.Artwork"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:zPlayer.App"
@@ -15,7 +15,6 @@
         <SolidColorBrush Color="{StaticResource BackgroundColor}"/>
     </Window.Background>
     <Window.Resources>
-
         <Style TargetType="Label" x:Key="MiniTitle">
             <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
             <Setter Property="Opacity" Value="0.5"/>
@@ -110,9 +109,9 @@
                 <!--Application-->
                 <Label Content="Application" Style="{StaticResource MiniTitle}"/>
                 <ListBox x:Name="AppNavigation" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-             BorderThickness="0" Background="Transparent"
-             ItemContainerStyle="{StaticResource SidebarItem}"
-             SelectionChanged="AppNavigation_SelectionChanged">
+                         BorderThickness="0" Background="Transparent"
+                         ItemContainerStyle="{StaticResource SidebarItem}"
+                         SelectionChanged="AppNavigation_SelectionChanged">
                     <ListBoxItem Tag="Settings">
                         <StackPanel Orientation="Horizontal">
                             <Image Source="/Assets/Icons/Cog_32x.png" Style="{StaticResource ItemIcon}"/>
@@ -126,11 +125,17 @@
         <!--Playback queue sidebar-->
         <Border Grid.Column="2" Style="{StaticResource PanelRight}">
             <StackPanel Orientation="Vertical" Margin="2,6">
-                <Button Click="ToggleQueue_Click" Style="{StaticResource IconButton}" Opacity="0.5" Margin="0,0,0,24">
+                <Button Click="ToggleQueue_Click" Style="{StaticResource IconButton}" Opacity="0.5"
+                        ToolTip="Show playback queue" Margin="0,0,0,12">
                     <Image Source="/Assets/Icons/Queue_32x.png"/>
                 </Button>
-                <Button Click="ClearQueue_Click" Style="{StaticResource IconButton}" Opacity="0.5">
+                <Button Click="ClearQueue_Click" Style="{StaticResource IconButton}" Opacity="0.5"
+                        Margin="0,12" ToolTip="Clear playback queue">
                     <Image Source="/Assets/Icons/QueueClear_32x.png"/>
+                </Button>
+                <Button x:Name="ShuffleQueueButton" Click="ShuffleQueue_Click" Style="{StaticResource IconButton}" Opacity="0.5"
+                        Margin="0,12" ToolTip="Shuffle queue once">
+                    <Image Source="/Assets/Icons/Shuffle_32x.png"/>
                 </Button>
             </StackPanel>
         </Border>
@@ -212,8 +217,10 @@
                 </Grid.ColumnDefinitions>
 
                 <Border BorderThickness="0,2,2,0" BorderBrush="{StaticResource BorderBrush}"
-            Grid.RowSpan="3" Grid.Column="0" Margin="0,-2,-2,0">
-                    <Image x:Name="CurrentSongArtwork" art:CoverArt.Enabled="True" Stretch="Fill"/>
+                            Grid.RowSpan="3" Grid.Column="0" Margin="0,-2,-2,0">
+                    <Border.Background>
+                        <ImageBrush x:Name="CurrentSongArtwork" art:CoverArt.Enabled="True" Stretch="UniformToFill"/>
+                    </Border.Background>
                 </Border>
                 <!--Loop, Shuffle, and Title/Artist-->
                 <Grid Grid.Row="0" Grid.Column="1">
@@ -233,7 +240,7 @@
                     <TextBlock x:Name="SongArtistText" Text="Very Long Artist Name — Very Long Album Name"
                             Grid.Column="1" Style="{StaticResource ArtistTitle}"/>
 
-                    <Button x:Name="ShuffleButton" Click="ShuffleButton_Click" Style="{StaticResource IconButton}"
+                    <Button x:Name="ToggleShuffleButton" Click="ToggleShuffle_Click" Style="{StaticResource IconButton}"
                             HorizontalAlignment="Right" VerticalAlignment="Top"
                             Width="32" Margin="10" Grid.Column="2">
                         <Image Source="/Assets/Icons/Shuffle_32x.png"/>
@@ -259,7 +266,7 @@
                            MouseEnter="Volume_MouseEnter" MouseLeave="Volume_MouseLeave"
                            HorizontalOffset="12" StaysOpen="True" AllowsTransparency="True">
                         <Border Background="{StaticResource SurfaceBrush}">
-                            <Slider x:Name="VolumeSlider" Style="{StaticResource FilledSlider}" Width="320" Height="24"
+                            <Slider x:Name="VolumeSlider" Style="{StaticResource FilledSlider}" Width="300" Height="24"
                                     VerticalAlignment="Center" Opacity="0"
                                     Minimum="0" Maximum="1" Value="0.5"
                                     SmallChange="0.01" LargeChange="0.1"/>

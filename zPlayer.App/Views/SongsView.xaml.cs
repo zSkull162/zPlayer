@@ -28,6 +28,7 @@ namespace zPlayer.App.Views
 
             SortTypeBox.SelectedIndex = sortState.TypeIndex;
             SortOrderBox.SelectedIndex = sortState.OrderIndex;
+            if (!string.IsNullOrWhiteSpace(sortState.FilterString)) SongSearchBox.Text = sortState.FilterString;
 
             songsView = CollectionViewSource.GetDefaultView(library.Songs);
             songsView.Filter = FilterSong;
@@ -47,7 +48,11 @@ namespace zPlayer.App.Views
                 return originalString.Contains(term, StringComparison.OrdinalIgnoreCase);
             }
 
-            return Contains(song.Title, search) || Contains(song.Artist, search) || Contains(song.AlbumTitle, search) || Contains(song.AlbumArtist, search);
+            return SortTypeBox.SelectedIndex switch {
+                1 => Contains(song.Artist, search),
+                2 => Contains(song.AlbumTitle, search),
+                _ => Contains(song.Title, search)
+            };
         }
 
         private void ApplySorting() {
@@ -82,6 +87,7 @@ namespace zPlayer.App.Views
         }
 
         private void SongSearchBox_TextChanged(object sender, TextChangedEventArgs e) {
+            sortState.FilterString = SongSearchBox.Text;
             songsView?.Refresh();
         }
         #endregion

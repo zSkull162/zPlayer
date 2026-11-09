@@ -102,7 +102,10 @@
                                     </LinearGradientBrush>
                                 </Border.Background>
                                 <Border.Width>
-                                    <MultiBinding Converter="{StaticResource FillWidthConverter}">
+                                    <MultiBinding>
+                                        <MultiBinding.Converter>
+                                            <converters:FillWidthConverter/>
+                                        </MultiBinding.Converter>
                                         <Binding Path="Value" RelativeSource="{RelativeSource TemplatedParent}"/>
                                         <Binding Path="Minimum" RelativeSource="{RelativeSource TemplatedParent}"/>
                                         <Binding Path="Maximum" RelativeSource="{RelativeSource TemplatedParent}"/>

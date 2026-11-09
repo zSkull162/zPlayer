@@ -188,8 +188,9 @@ namespace zPlayer.App
             LoopButtonImage.DataContext = new {
                 LoopMode = player.Loop
             };
-            ShuffleButton.IsEnabled = player.QueueCount > 1;
-            ShuffleButton.Opacity = ShuffleButton.IsEnabled ? 1 : 0.25;
+            ShuffleQueueButton.IsEnabled = player.QueueCount > 1;
+            ShuffleQueueButton.Opacity = ShuffleQueueButton.IsEnabled ? 1 : 0.25;
+            ToggleShuffleButton.Opacity = player.AutoReshuffle ? 1 : 0.7;
 
             PlayPauseImage.Source = player.IsPlaying ? pauseIcon : playIcon;
             SetTimelineRendering(player.IsPlaying);
@@ -326,6 +327,7 @@ namespace zPlayer.App
             }
         }
 
+        #region Song importing
         private bool importingSongs;
 
         private static readonly HashSet<string> AudioExtensions = new(StringComparer.OrdinalIgnoreCase) {
@@ -449,6 +451,7 @@ namespace zPlayer.App
             paths.Sort(StringComparer.OrdinalIgnoreCase);
             return (paths, errors);
         }
+        #endregion
 
         #region Popup menus
         private async void ShowEditSong(Song song) {
@@ -1073,8 +1076,13 @@ namespace zPlayer.App
             player.CycleLoopMode();
         }
 
-        private void ShuffleButton_Click(object sender, RoutedEventArgs e) {
+        private void ShuffleQueue_Click(object sender, RoutedEventArgs e) {
             player.ShuffleQueue();
+        }
+
+        private void ToggleShuffle_Click(object sender, RoutedEventArgs e) {
+            player.ToggleAutoReshuffle();
+            ToggleShuffleButton.Opacity = player.AutoReshuffle ? 1 : 0.7;
         }
 
         private void BackButton_Click(object sender, RoutedEventArgs e) {

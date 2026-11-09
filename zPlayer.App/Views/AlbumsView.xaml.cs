@@ -31,6 +31,7 @@ namespace zPlayer.App.Views
             
             SortTypeBox.SelectedIndex = sortState.TypeIndex;
             SortOrderBox.SelectedIndex = sortState.OrderIndex;
+            if (!string.IsNullOrWhiteSpace(sortState.FilterString)) AlbumSearchBox.Text = sortState.FilterString;
 
             restoringSort = false;
             DataContext = library;
@@ -59,12 +60,18 @@ namespace zPlayer.App.Views
             static bool Contains(string originalString, string term) {
                 return originalString.Contains(term, StringComparison.OrdinalIgnoreCase);
             }
+            static bool FilterBySearchType(Album album, string search, int typeIndex) {
+                if (string.IsNullOrEmpty(search)) return true;
+                return typeIndex switch {
+                    1 => Contains(album.Artist, search),
+                    _ => Contains(album.Title, search)
+                };
+            }
             static IOrderedEnumerable<Album> OrderedList<T>(IEnumerable<Album> albums, Func<Album, T> keySelector, bool descending, IComparer<T>? comparer = null) {
                 return descending ? albums.OrderByDescending(keySelector, comparer) : albums.OrderBy(keySelector, comparer);
             }
 
-            IEnumerable<Album> filtered = library.Albums.Where(album =>
-                string.IsNullOrWhiteSpace(search) || Contains(album.Title, search) || Contains(album.Artist, search));
+            IEnumerable<Album> filtered = library.Albums.Where(album => FilterBySearchType(album, search, SortTypeBox.SelectedIndex));
 
             IOrderedEnumerable<Album> sorted = SortTypeBox.SelectedIndex switch {
                 1 => OrderedList(filtered, album => album.Artist, descending, StringComparer.OrdinalIgnoreCase),
@@ -109,6 +116,7 @@ namespace zPlayer.App.Views
 
         private void AlbumSearchBox_TextChanged(object sender, TextChangedEventArgs e) {
             if (!IsInitialized) return;
+            sortState.FilterString = AlbumSearchBox.Text;
             page = 0;
             RefreshAlbums();
         }

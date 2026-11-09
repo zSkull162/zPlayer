@@ -24,6 +24,7 @@ x86/
 [Bb]in/
 [Oo]bj/
 bld/
+/publish/
 
 ##=========================================
 ## WPF Specific Temporary Files

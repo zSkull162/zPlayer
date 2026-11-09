@@ -37,6 +37,7 @@ namespace zPlayer.App.Playback
         }
 
         public LoopMode Loop { get; private set; } = LoopMode.Off;
+        public bool AutoReshuffle { get; private set; }
         public bool IsPlaying => output?.PlaybackState == PlaybackState.Playing;
 
         private readonly Stopwatch playbackClock = new();
@@ -213,6 +214,10 @@ namespace zPlayer.App.Playback
             NotifyStateChanged();
         }
 
+        public void ToggleAutoReshuffle() {
+            AutoReshuffle = !AutoReshuffle;
+        }
+
         private void Advance(int direction, bool manual) {
             if (playOrder.Count == 0) return;
             if (orderPos < 0) {
@@ -232,6 +237,7 @@ namespace zPlayer.App.Playback
                     NotifyStateChanged();
                     return;
                 }
+                if (AutoReshuffle) ShuffleQueue();
                 nextPos = 0;
             }
             orderPos = nextPos;
@@ -293,7 +299,6 @@ namespace zPlayer.App.Playback
                     output.Play();
                     playbackClock.Start();
                 }
-
                 NotifyStateChanged();
             }
             catch (Exception ex) {

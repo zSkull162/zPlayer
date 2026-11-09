@@ -98,7 +98,7 @@
                         <Image Source="/Assets/Icons/QueueNext_32x.png"/>
                     </Button>
                 </StackPanel>
-
+                
                 <Button Click="EditMix_Click" Style="{StaticResource IconButton}"
                         HorizontalAlignment="Right" Grid.Column="2" Margin="6">
                     <Image Source="/Assets/Icons/Edit_32x.png"/>
@@ -164,7 +164,7 @@
                         </MenuItem.Icon>
                     </MenuItem>
                     <Separator Style="{StaticResource RoundedSeparator}"/>
-                    <MenuItem Header="Move to another Album" Command="{Binding Tag.Commands.MoveSongToAlbumCommand}" CommandParameter="{Binding}">
+                    <MenuItem Header="Move to Album" Command="{Binding Tag.Commands.MoveSongToAlbumCommand}" CommandParameter="{Binding}">
                         <MenuItem.Icon>
                             <Image Source="/Assets/Icons/MoveToAlbum_32x.png"/>
                         </MenuItem.Icon>
@@ -196,8 +196,7 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
 
-                                <Border Width="40" Height="40" CornerRadius="3" ClipToBounds="True" art:CoverArt.Small="True" art:CoverArt.Reference="{Binding Cover}" art:CoverArt.Enabled="True">
-                                </Border>
+                                <Border Width="40" Height="40" CornerRadius="3" ClipToBounds="True" art:CoverArt.Small="True" art:CoverArt.Reference="{Binding Cover}" art:CoverArt.Enabled="True"/>
 
                                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0,0,0">
                                     <TextBlock Text="{Binding Title}" FontSize="13" FontWeight="SemiBold"
@@ -232,11 +231,12 @@
                                 <Border.Style>
                                     <Style TargetType="Border">
                                         <Setter Property="Visibility" Value="Collapsed"/>
+                                        <Setter Property="IsEnabled" Value="False"/>
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding DataContext.SortType, RelativeSource={RelativeSource AncestorType={x:Type local:MixDetailsView}}}"
                                                             Value="{x:Static core:MixSortType.Manual}">
                                                 <Setter Property="Visibility" Value="Visible"/>
-                                                <Setter Property="IsEnabled" Value="False"/>
+                                                <Setter Property="IsEnabled" Value="True"/>
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>

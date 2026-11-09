@@ -5,6 +5,7 @@ namespace zPlayer.App
     {
         public int TypeIndex { get; set; }
         public int OrderIndex { get; set; }
+        public string? FilterString { get; set; }
     }
     public sealed class ViewState
     {

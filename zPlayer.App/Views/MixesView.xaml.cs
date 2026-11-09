@@ -31,6 +31,7 @@ namespace zPlayer.App.Views
 
             SortTypeBox.SelectedIndex = sortState.TypeIndex;
             SortOrderBox.SelectedIndex = sortState.OrderIndex;
+            if (!string.IsNullOrWhiteSpace(sortState.FilterString)) MixSearchBox.Text = sortState.FilterString;
 
             DataContext = library;
             initializing = false;
@@ -104,6 +105,7 @@ namespace zPlayer.App.Views
 
         private void MixSearchBox_TextChanged(object sender, TextChangedEventArgs e) {
             if (initializing) return;
+            sortState.FilterString = MixSearchBox.Text;
             page = 0;
             RefreshMixes();
         }
