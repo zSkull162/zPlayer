@@ -1021,6 +1021,44 @@ namespace zPlayer.App
             e.Handled = true;
         }
 
+        private void QueueSelectSong_Click(object sender, RoutedEventArgs e) {
+            if (sender is not MenuItem { DataContext: Song queuedSong }) return;
+
+            Song? song = library.Songs.FirstOrDefault(item => item.Id == queuedSong.Id);
+            if (song == null) return;
+
+            SelectLibraryPage("Songs");
+            if (MainContent.Content is SongsView view) {
+                _ = view.Dispatcher.InvokeAsync(() => {
+                    if (ReferenceEquals(MainContent.Content, view) && view.IsLoaded) {
+                        view.RevealSong(song);
+                    }
+                }, DispatcherPriority.Loaded);
+            }
+        }
+
+        private void QueueSelectAlbum_Click(object sender, RoutedEventArgs e) {
+            if (sender is not MenuItem { DataContext: Song { AlbumId: Guid albumId } }) return;
+
+            Album? album = library.GetAlbum(albumId);
+            if (album == null) return;
+
+            SelectLibraryPage("Albums");
+            OpenAlbumDetails(album);
+        }
+
+        private void SelectLibraryPage(string tag) {
+            ListBoxItem? item = LibraryNavigation.Items.OfType<ListBoxItem>().FirstOrDefault(entry => Equals(entry.Tag, tag));
+            if (item == null) return;
+
+            if (!ReferenceEquals(LibraryNavigation.SelectedItem, item)) {
+                LibraryNavigation.SelectedItem = item;
+            }
+            else if (tag == "Songs" && MainContent.Content is not SongsView) {
+                NavigateToPage(tag);
+            }
+        }
+
         private void LibraryNavigation_SelectionChanged(object sender, RoutedEventArgs e) {
             if (!IsLoaded || LibraryNavigation.SelectedItem is not ListBoxItem item) return;
             AppNavigation.SelectedIndex = -1;

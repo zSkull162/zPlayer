@@ -162,7 +162,31 @@
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="32"/>
                                 </Grid.ColumnDefinitions>
-
+                                <Grid.ContextMenu>
+                                    <ContextMenu Style="{StaticResource RoundedContextMenu}"
+                                                 DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                                        <MenuItem Header="Select in Songs List" Click="QueueSelectSong_Click">
+                                            <MenuItem.Icon>
+                                                <Image Source="/Assets/Icons/Song_32x.png"/>
+                                            </MenuItem.Icon>
+                                        </MenuItem>
+                                        <MenuItem Header="Select song's Album" Click="QueueSelectAlbum_Click">
+                                            <MenuItem.Icon>
+                                                <Image Source="/Assets/Icons/Album_32x.png"/>
+                                            </MenuItem.Icon>
+                                            <MenuItem.Style>
+                                                <Style TargetType="MenuItem">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding AlbumId}" Value="{x:Null}">
+                                                            <Setter Property="IsEnabled" Value="False"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </MenuItem.Style>
+                                        </MenuItem>
+                                    </ContextMenu>
+                                </Grid.ContextMenu>
+                                
                                 <Button Grid.Column="0" Click="QueueSong_Click"
                                             Style="{StaticResource ListRowButton}"
                                             HorizontalContentAlignment="Stretch"

@@ -82,8 +82,7 @@
                     <RowDefinition Height="40"/> <!--Actions-->
                 </Grid.RowDefinitions>
 
-                <Border CornerRadius="3" Grid.Column="0" Grid.RowSpan="4" art:CoverArt.Reference="{Binding Cover}" art:CoverArt.Enabled="True">
-                </Border>
+                <Border CornerRadius="3" Grid.Column="0" Grid.RowSpan="4" art:CoverArt.Reference="{Binding Cover}" art:CoverArt.Enabled="True"/>
 
                 <TextBlock Text="{Binding Title}" Style="{StaticResource AlbumTitle}" Grid.Column="1"/>
                 <TextBlock Text="{Binding Artist}" Style="{StaticResource AlbumArtist}" Grid.Column="1" Grid.Row="1"/>
@@ -145,6 +144,22 @@
             <DataGrid.ContextMenu>
                 <ContextMenu Style="{StaticResource RoundedContextMenu}"
                              DataContext="{Binding PlacementTarget, RelativeSource={RelativeSource Self}}">
+                    <MenuItem Header="Play" Command="{Binding Tag.PlaySongCommand}" CommandParameter="{Binding}">
+                        <MenuItem.Icon>
+                            <Image Source="/Assets/Icons/Play_32x.png"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="Play Next" Command="{Binding Tag.PlaySongNextCommand}" CommandParameter="{Binding}">
+                        <MenuItem.Icon>
+                            <Image Source="/Assets/Icons/QueueNext_32x.png"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="Add to Queue" Command="{Binding Tag.AddSongToQueueCommand}" CommandParameter="{Binding}">
+                        <MenuItem.Icon>
+                            <Image Source="/Assets/Icons/QueueAdd_32x.png"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <Separator Style="{StaticResource RoundedSeparator}"/>
                     <MenuItem Header="Edit Info" Command="{Binding Tag.EditSongCommand}" CommandParameter="{Binding}">
                         <MenuItem.Icon>
                             <Image Source="/Assets/Icons/Edit_32x.png"/>

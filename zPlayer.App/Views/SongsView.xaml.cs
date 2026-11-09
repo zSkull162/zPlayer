@@ -92,6 +92,16 @@ namespace zPlayer.App.Views
         }
         #endregion
 
+        public void RevealSong(Song song) {
+            if (!SongsGrid.Items.Contains(song)) {
+                SongSearchBox.Clear();
+            }
+            if (!SongsGrid.Items.Contains(song)) return;
+            SongsGrid.UnselectAll();
+            SongsGrid.SelectedItem = song;
+            SongsGrid.ScrollIntoView(song);
+        }
+
         private void ImportSongs_Click(object sender, RoutedEventArgs e) {
             ImportSongsRequested?.Invoke();
         }
