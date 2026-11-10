@@ -49,6 +49,17 @@ namespace zPlayer.App.Views
             AlbumsInLibraryText.Text = $"— {library.Albums.Count} in library";
         }
 
+        private void UpdatePageUI(int pageCount) {
+            PageText.Text = $"Page {page + 1} of {pageCount}";
+            PageControls.Visibility = pageCount > 1 ? Visibility.Visible : Visibility.Collapsed;
+
+            PreviousPageButton.IsEnabled = page > 0;
+            NextPageButton.IsEnabled = page + 1 < pageCount;
+
+            PreviousPageButton.Opacity = page > 0 ? 1 : 0.5;
+            NextPageButton.Opacity = page + 1 < pageCount ? 1 : 0.5;
+        }
+
         #region Filtering and sorting
         private List<object> ApplySorting() {
             string search = AlbumSearchBox.Text.Trim();
@@ -89,10 +100,7 @@ namespace zPlayer.App.Views
             page = Math.Clamp(page, 0, pageCount - 1);
             items.AddRange(ordered.Skip(page * PageSize).Take(PageSize));
 
-            PageText.Text = $"Page {page + 1} of {pageCount}";
-            PageControls.Visibility = pageCount > 1 ? Visibility.Visible : Visibility.Collapsed;
-            PreviousPageButton.IsEnabled = page > 0;
-            NextPageButton.IsEnabled = page + 1 < pageCount;
+            UpdatePageUI(pageCount);
             return items;
         }
 

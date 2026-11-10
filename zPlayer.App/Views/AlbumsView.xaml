@@ -33,7 +33,6 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="24"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <!--View Header-->
@@ -129,9 +128,8 @@
 
             <ListBox.Resources>
                 <DataTemplate DataType="{x:Type core:Album}">
-                    <StackPanel Width="160" Margin="4">
-                        <Border Width="160" Height="160" CornerRadius="3" art:CoverArt.Reference="{Binding Cover}" art:CoverArt.Enabled="True">
-                        </Border>
+                    <StackPanel Width="155" Margin="4">
+                        <Border Width="155" Height="155" CornerRadius="3" art:CoverArt.Reference="{Binding Cover}" art:CoverArt.Enabled="True"/>
 
                         <TextBlock Text="{Binding Title}" Style="{StaticResource AlbumTitle}"/>
                         <TextBlock Text="{Binding Artist}" Style="{StaticResource AlbumArtist}"/>
@@ -142,8 +140,8 @@
                     <Button Click="CreateAlbum_Click"
                         Style="{StaticResource ListRowButton}"
                         ToolTip="Create an album">
-                        <StackPanel Width="160" Margin="4">
-                            <Image Source="/Assets/Icons/Import.png" Width="160" Height="160"/>
+                        <StackPanel Width="155" Margin="4">
+                            <Image Source="/Assets/Icons/Import.png" Width="155" Height="155"/>
 
                             <TextBlock Text="New Album" Style="{StaticResource AlbumTitle}"/>
                             <TextBlock Text="Create a new album" Style="{StaticResource AlbumArtist}"/>
@@ -152,12 +150,23 @@
                 </DataTemplate>
             </ListBox.Resources>
         </ListBox>
-        <StackPanel Grid.Row="2" x:Name="PageControls" Orientation="Horizontal" HorizontalAlignment="Right" Margin="4">
-            <Button x:Name="PreviousPageButton" Content="Previous" Click="PreviousPage_Click"
-                    Style="{StaticResource RoundedButton}" Padding="8,4"/>
-            <TextBlock x:Name="PageText" Foreground="{DynamicResource TextBrush}" VerticalAlignment="Center" Margin="8,0"/>
-            <Button x:Name="NextPageButton" Content="Next" Click="NextPage_Click"
-                    Style="{StaticResource RoundedButton}" Padding="8,4"/>
-        </StackPanel>
+
+        <Border Grid.Row="1" x:Name="PageControls"
+                HorizontalAlignment="Center" VerticalAlignment="Bottom"
+                Margin="4" Padding="4" MaxHeight="46" Style="{StaticResource Panel}" CornerRadius="3">
+            <StackPanel Orientation="Horizontal">
+                <Button x:Name="PreviousPageButton" Click="PreviousPage_Click"
+                        Style="{StaticResource IconButton}" Width="18" Height="18">
+                    <Image Source="/Assets/Icons/ArrowBack_32x.png" Margin="2"/>
+                </Button>
+
+                <TextBlock x:Name="PageText" Text="Page XX/XX" Foreground="{DynamicResource TextBrush}" VerticalAlignment="Center" Margin="8,0"/>
+
+                <Button x:Name="NextPageButton" Click="NextPage_Click"
+                        Style="{StaticResource IconButton}" Width="18" Height="18">
+                    <Image Source="/Assets/Icons/ArrowForward_32x.png" Margin="2"/>
+                </Button>
+            </StackPanel>
+        </Border>
     </Grid>
 </UserControl>
