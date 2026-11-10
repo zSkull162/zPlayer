@@ -20,6 +20,8 @@
     <None Remove="Assets\Icons\ArrowForward_32x.png" />
     <None Remove="Assets\Icons\Artist.png" />
     <None Remove="Assets\Icons\Artist_32x.png" />
+    <None Remove="Assets\Icons\AutoShuffle.png" />
+    <None Remove="Assets\Icons\AutoShuffle_32x.png" />
     <None Remove="Assets\Icons\Back.png" />
     <None Remove="Assets\Icons\Back_32x.png" />
     <None Remove="Assets\Icons\Checkmark.png" />
@@ -103,6 +105,8 @@
     <Resource Include="Assets\Icons\ArrowForward_32x.png" />
     <Resource Include="Assets\Icons\Artist.png" />
     <Resource Include="Assets\Icons\Artist_32x.png" />
+    <Resource Include="Assets\Icons\AutoShuffle.png" />
+    <Resource Include="Assets\Icons\AutoShuffle_32x.png" />
     <Resource Include="Assets\Icons\Back.png" />
     <Resource Include="Assets\Icons\Back_32x.png" />
     <Resource Include="Assets\Icons\Checkmark.png" />

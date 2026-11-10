@@ -266,7 +266,7 @@
                     <Button x:Name="ToggleShuffleButton" Click="ToggleShuffle_Click" Style="{StaticResource IconButton}"
                             HorizontalAlignment="Right" VerticalAlignment="Top"
                             Width="32" Margin="10" Grid.Column="2">
-                        <Image Source="/Assets/Icons/Shuffle_32x.png"/>
+                        <Image Source="/Assets/Icons/AutoShuffle_32x.png"/>
                     </Button>
                 </Grid>
                 <!--Volume and Skip/Play/Loop-->
