@@ -1,13 +1,11 @@
 ﻿#region Namespaces
 using Microsoft.Win32;
-using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Data;
-using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
@@ -32,6 +30,7 @@ namespace zPlayer.App
         private readonly PlaybackController player = new();
         private readonly MusicLibrary library = new();
         private readonly MediaKeyListener? mediaKeys;
+        private readonly zPlayerRPC discordRPC;
 
         private readonly SongCommands songCommands;
         private readonly AlbumCommands albumCommands;
@@ -58,6 +57,7 @@ namespace zPlayer.App
             albumCommands = new(player, ShowEditAlbums, DeleteAlbums, ShowAddSongsToMix);
             mixCommands = new(library, player, ShowEditMix, DeleteMixes);
 
+            discordRPC = new("1571592760929161338");
             CoverArt.Loader = new ArtworkLoader(database);
             InitializeComponent();
             InitDatabase();
@@ -104,7 +104,10 @@ namespace zPlayer.App
         private void InitPlaybackUI() {
             TimelineSlider.ValueChanged += TimelineSlider_ValueChanged;
 
-            player.StateChanged += (_, _) => UpdatePlaybackUI();
+            player.StateChanged += (_, _) => {
+                UpdatePlaybackUI();
+                discordRPC.Update(player.GetCurrentSong(), player.IsPlaying, player.Position, player.Duration);
+            };
             player.PlaybackError += message => {
                 MessageBox.Show(this, message, "Playback Error", MessageBoxButton.OK, MessageBoxImage.Error);
             };
@@ -155,6 +158,7 @@ namespace zPlayer.App
             SaveVolumeSetting();
             mediaKeys?.Dispose();
             player.Dispose();
+            discordRPC.Dispose();
             base.OnClosed(e);
         }
 
