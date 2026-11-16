@@ -20,7 +20,6 @@ namespace zPlayer.App.Views
         public AlbumCommands Commands { get; }
         public event Action<Album>? AlbumOpened;
         public event Action? CreateAlbumRequested;
-        public event Action<Album>? EditAlbumRequested;
 
         public AlbumsView(MusicLibrary library, AlbumCommands commands, SortState sortState) {
             Commands = commands;

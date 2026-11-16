@@ -18,23 +18,26 @@ namespace zPlayer.Infrastructure
                 client.ClearPresence();
                 return;
             }
-
             position = TimeSpan.FromTicks(Math.Clamp(position.Ticks, 0, duration.Ticks));
             DateTime start = DateTime.UtcNow - position;
 
+            string state = Limit(song.Artist);
+            Timestamps? timestamps = new() { Start = start, End = start + duration };
+            if (!isPlaying) {
+                state = Limit($"(Paused) • {song.Artist}");
+                timestamps = null;
+            }
+
             client.SetPresence(new RichPresence {
                 Type = ActivityType.Listening,
-                StatusDisplay = StatusDisplayType.Details,
+                StatusDisplay = StatusDisplayType.State,
                 Details = Limit(song.Title),
-                State = Limit(isPlaying ? song.Artist : $"Paused · {song.Artist}"),
+                State = state,
                 Assets = new Assets {
                     LargeImageKey = coverUrl ?? "zplayer",
                     LargeImageText = Limit(song.AlbumTitle)
                 },
-                Timestamps = isPlaying ? new Timestamps {
-                    Start = start,
-                    End = start + duration
-                } : null
+                Timestamps = timestamps
             });
         }
 

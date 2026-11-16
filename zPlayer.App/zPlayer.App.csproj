@@ -27,6 +27,8 @@
     <None Remove="Assets\Icons\Checkmark.png" />
     <None Remove="Assets\Icons\Cog.png" />
     <None Remove="Assets\Icons\Cog_32x.png" />
+    <None Remove="Assets\Icons\DefaultPFP.png" />
+    <None Remove="Assets\Icons\DefaultPFP_32x.png" />
     <None Remove="Assets\Icons\Delete.png" />
     <None Remove="Assets\Icons\Delete_32x.png" />
     <None Remove="Assets\Icons\Edit.png" />
@@ -47,6 +49,10 @@
     <None Remove="Assets\Icons\Mix_32x.png" />
     <None Remove="Assets\Icons\MoveToAlbum.png" />
     <None Remove="Assets\Icons\MoveToAlbum_32x.png" />
+    <None Remove="Assets\Icons\Music.png" />
+    <None Remove="Assets\Icons\MusicGreen.png" />
+    <None Remove="Assets\Icons\MusicGreen_32x.png" />
+    <None Remove="Assets\Icons\Music_32x.png" />
     <None Remove="Assets\Icons\Pause.png" />
     <None Remove="Assets\Icons\Pause_32x.png" />
     <None Remove="Assets\Icons\PlaceholderCover.png" />
@@ -76,6 +82,7 @@
     <None Remove="Assets\Icons\Speaker_32x.png" />
     <None Remove="Assets\Icons\TestCover.png" />
     <None Remove="Assets\zPlayer.ico" />
+    <None Remove="Assets\zPlayerImage.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -112,6 +119,8 @@
     <Resource Include="Assets\Icons\Checkmark.png" />
     <Resource Include="Assets\Icons\Cog.png" />
     <Resource Include="Assets\Icons\Cog_32x.png" />
+    <Resource Include="Assets\Icons\DefaultPFP.png" />
+    <Resource Include="Assets\Icons\DefaultPFP_32x.png" />
     <Resource Include="Assets\Icons\Delete.png" />
     <Resource Include="Assets\Icons\Delete_32x.png" />
     <Resource Include="Assets\Icons\Edit.png" />
@@ -132,6 +141,10 @@
     <Resource Include="Assets\Icons\Mix_32x.png" />
     <Resource Include="Assets\Icons\MoveToAlbum.png" />
     <Resource Include="Assets\Icons\MoveToAlbum_32x.png" />
+    <Resource Include="Assets\Icons\Music.png" />
+    <Resource Include="Assets\Icons\MusicGreen.png" />
+    <Resource Include="Assets\Icons\MusicGreen_32x.png" />
+    <Resource Include="Assets\Icons\Music_32x.png" />
     <Resource Include="Assets\Icons\Pause.png" />
     <Resource Include="Assets\Icons\Pause_32x.png" />
     <Resource Include="Assets\Icons\PlaceholderCover.png" />
@@ -161,6 +174,7 @@
     <Resource Include="Assets\Icons\Speaker_32x.png" />
     <Resource Include="Assets\Icons\TestCover.png" />
     <Resource Include="Assets\Icons\zPlayer.ico" />
+    <Resource Include="Assets\zPlayerImage.png" />
   </ItemGroup>
 
 </Project>
