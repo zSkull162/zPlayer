@@ -328,6 +328,9 @@ namespace zPlayer.App
                     mixesView.CreateMixRequested += ShowCreateMix;
                     MainContent.Content = mixesView;
                     break;
+                case "Settings":
+                    MainContent.Content = new SettingsView();
+                    break;
             }
         }
 

@@ -43,23 +43,23 @@
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         <TextBlock Style="{StaticResource ToggleLabel}" Text="Discord Rich Presence"/>
-                        <CheckBox Style="{StaticResource SettingsCheckbox}" IsChecked="{Binding discordRpcEnabled}"/>
+                        <CheckBox x:Name="RpcToggle" Style="{StaticResource SettingsCheckbox}" Click="RpcToggle_Click"/>
 
                         <StackPanel x:Name="RpcOptions" Grid.Row="1" Orientation="Vertical" Margin="12,0,0,0" Visibility="Visible">
                             <Separator Style="{StaticResource RoundedSeparator}"/>
                             <Grid>
                                 <TextBlock Style="{StaticResource ToggleLabel}" Text="Display paused state"/>
-                                <CheckBox Style="{StaticResource SettingsCheckbox}" IsChecked="{Binding rpcDisplayPaused}"/>
+                                <CheckBox x:Name="RpcDisplayPausedToggle" Style="{StaticResource SettingsCheckbox}" Click="RpcToggle_Click"/>
                             </Grid>
                             <Grid>
                                 <TextBlock Style="{StaticResource ToggleLabel}" Text="Display album"/>
-                                <CheckBox Style="{StaticResource SettingsCheckbox}" IsChecked="{Binding rpcDisplayAlbum}"/>
+                                <CheckBox x:Name="RpcDisplayAlbumToggle" Style="{StaticResource SettingsCheckbox}" Click="RpcToggle_Click"/>
                             </Grid>
                             <Grid>
                                 <TextBlock Style="{StaticResource ToggleLabel}" Text="Status Type"/>
-                                <ComboBox x:Name="StatusBox" Style="{StaticResource RoundedComboBox}"
+                                <ComboBox x:Name="RpcStatusBox" Style="{StaticResource RoundedComboBox}"
                                                       SelectedIndex="2" HorizontalAlignment="Right" Margin="8"
-                                                      SelectionChanged="StatusBox_SelectionChanged">
+                                                      SelectionChanged="RpcStatusBox_SelectionChanged">
                                     <ComboBoxItem Content="App name"/>
                                     <ComboBoxItem Content="Song title"/>
                                     <ComboBoxItem Content="Song artist"/>
@@ -95,6 +95,7 @@
                             <Grid Margin="4,8,0,4"> <!--Expanded status preview-->
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="260"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <Grid.RowDefinitions>
@@ -108,20 +109,27 @@
                                 <TextBlock Grid.Column="1" Foreground="{StaticResource TextBrush}" Text="Song Title" FontSize="16" FontWeight="Bold"/>
                                 <TextBlock x:Name="PreviewArtistText" Grid.Column="1" Grid.Row="1" Foreground="{StaticResource TextBrush}" Text="Artist" FontSize="14"/>
                                 <TextBlock x:Name="PreviewAlbumText" Grid.Column="1" Grid.Row="2" Foreground="{StaticResource TextBrush}" Text="Album Name" FontSize="14"/>
-                                <StackPanel x:Name="PreviewProgressBar" Orientation="Horizontal" Grid.Column="1" Grid.Row="3" Visibility="Collapsed">
+                                
+                                <StackPanel x:Name="PreviewProgressBar" Orientation="Horizontal" Grid.Column="1" Grid.Row="3" Visibility="Visible">
                                     <TextBlock Grid.Column="1" Grid.Row="3" Foreground="{StaticResource TextBrush}" Text="01:30"
                                                         FontFamily="Cascadia Code"  FontSize="14" VerticalAlignment="Center"/>
                                     <Grid Margin="8,0">
-                                        <Rectangle Fill="Gray" Width="200" Height="2" RadiusX="1" RadiusY="1" Opacity="0.5"/>
-                                        <Rectangle Fill="White" Width="100" Height="2" RadiusX="1" RadiusY="1" HorizontalAlignment="Left"/>
+                                        <Rectangle Fill="Gray" Width="150" Height="2" RadiusX="1" RadiusY="1" Opacity="0.5"/>
+                                        <Rectangle Fill="White" Width="75" Height="2" RadiusX="1" RadiusY="1" HorizontalAlignment="Left"/>
                                     </Grid>
                                     <TextBlock Grid.Column="1" Grid.Row="3" Foreground="{StaticResource TextBrush}" Text="03:00"
                                                         FontFamily="Cascadia Code" FontSize="14" VerticalAlignment="Center"/>
                                 </StackPanel>
-                                <StackPanel x:Name="PreviewPausedInfo" Orientation="Horizontal" Grid.Column="1" Grid.Row="3" Visibility="Visible">
+                                
+                                <StackPanel x:Name="PreviewPausedInfo" Orientation="Horizontal" Grid.Column="1" Grid.Row="3" Visibility="Collapsed">
                                     <Image Source="/Assets/Icons/MusicGreen_32x.png" Stretch="Uniform" Margin="0,4,6,4"/>
                                     <TextBlock Foreground="ForestGreen" Text="0:00" FontSize="15" FontFamily="Cascadia Code" VerticalAlignment="Center"/>
                                 </StackPanel>
+
+                                <Button x:Name="PreviewPlayPauseButton" Style="{StaticResource IconButton}" Click="PreviewPlayPause_Click"
+                                               Grid.Column="2" Grid.Row="3" HorizontalAlignment="Left" Width="25">
+                                    <Image x:Name="PreviewPlayPauseIcon" Source="/Assets/Icons/Play_32x.png" Stretch="UniformToFill" Margin="2"/>
+                                </Button>
                             </Grid>
                         </StackPanel>
                     </Grid>
