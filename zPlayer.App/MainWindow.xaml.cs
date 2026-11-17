@@ -30,7 +30,9 @@ namespace zPlayer.App
         private readonly PlaybackController player = new();
         private readonly MusicLibrary library = new();
         private readonly MediaKeyListener? mediaKeys;
+
         private readonly zPlayerRPC discordRPC;
+        private zPlayerRpcSettings rpcSettings;
 
         private readonly SongCommands songCommands;
         private readonly AlbumCommands albumCommands;
@@ -61,6 +63,7 @@ namespace zPlayer.App
             CoverArt.Loader = new ArtworkLoader(database);
             InitializeComponent();
             InitDatabase();
+            rpcSettings = database.LoadRpcSettings();
             mediaKeys = new();
             InitMediaKeys();
             InitPlaybackUI();
@@ -106,7 +109,7 @@ namespace zPlayer.App
 
             player.StateChanged += (_, _) => {
                 UpdatePlaybackUI();
-                discordRPC.Update(player.GetCurrentSong(), player.IsPlaying, player.Position, player.Duration);
+                discordRPC.Update(rpcSettings, player.GetCurrentSong(), player.IsPlaying, player.Position, player.Duration);
             };
             player.PlaybackError += message => {
                 MessageBox.Show(this, message, "Playback Error", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -329,7 +332,21 @@ namespace zPlayer.App
                     MainContent.Content = mixesView;
                     break;
                 case "Settings":
-                    MainContent.Content = new SettingsView();
+                    SettingsView settingsView = new(rpcSettings);
+                    settingsView.SettingsChanged += settings => {
+                        if (settings == rpcSettings) return;
+                        try {
+                            database.SaveRpcSettings(settings);
+                            rpcSettings = settings;
+                            discordRPC.Update(rpcSettings, player.GetCurrentSong(), player.IsPlaying, player.Position, player.Duration);
+                        }
+                        catch (Exception ex) {
+                            settingsView.LoadSettings(rpcSettings);
+                            MessageBox.Show(this, $"Could not save Discord RPC settings:\n{ex.Message}", "Settings Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                            return;
+                        }
+                    };
+                    MainContent.Content = settingsView;
                     break;
             }
         }

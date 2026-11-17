@@ -1,4 +1,5 @@
 ﻿using DiscordRPC;
+using System.Data;
 using System.Text;
 using zPlayer.Core;
 
@@ -9,33 +10,44 @@ namespace zPlayer.Infrastructure
         private readonly DiscordRpcClient client;
 
         public zPlayerRPC(string applicationId) {
-            client = new(applicationId);
+            client = new(applicationId) {
+                SkipIdenticalPresence = false
+            };
             client.Initialize();
         }
 
-        public void Update(Song? song, bool isPlaying, TimeSpan position, TimeSpan duration, string? coverUrl = null) {
-            if (song == null || duration <= TimeSpan.Zero) {
+        public void Update(zPlayerRpcSettings settings, Song? song, bool isPlaying, TimeSpan position, TimeSpan duration, string? coverUrl = null) {
+            if (song == null || duration <= TimeSpan.Zero || !settings.Enabled) {
                 client.ClearPresence();
                 return;
             }
             position = TimeSpan.FromTicks(Math.Clamp(position.Ticks, 0, duration.Ticks));
             DateTime start = DateTime.UtcNow - position;
 
-            string state = Limit(song.Artist);
+            string largeImageText = Limit(song.AlbumTitle);
+            if (!settings.DisplayAlbumName) largeImageText = string.Empty;
+
             Timestamps? timestamps = new() { Start = start, End = start + duration };
             if (!isPlaying) {
-                state = Limit($"(Paused) • {song.Artist}");
+                if (settings.DisplayPausedState && settings.DisplayAlbumName) largeImageText = Limit($"{largeImageText}  •  (Paused)");
+                else if (settings.DisplayPausedState && !settings.DisplayAlbumName) largeImageText = "(Paused)";
                 timestamps = null;
             }
 
+            StatusDisplayType statusType = settings.StatusType switch {
+                1 => StatusDisplayType.Details,
+                2 => StatusDisplayType.State,
+                _ => StatusDisplayType.Name
+            };
+
             client.SetPresence(new RichPresence {
                 Type = ActivityType.Listening,
-                StatusDisplay = StatusDisplayType.State,
+                StatusDisplay = statusType,
                 Details = Limit(song.Title),
-                State = state,
+                State = Limit(song.Artist),
                 Assets = new Assets {
                     LargeImageKey = coverUrl ?? "zplayer",
-                    LargeImageText = Limit(song.AlbumTitle)
+                    LargeImageText = largeImageText
                 },
                 Timestamps = timestamps
             });

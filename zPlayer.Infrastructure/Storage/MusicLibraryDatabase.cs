@@ -55,6 +55,14 @@ namespace zPlayer.Infrastructure.Storage
                         Volume REAL NOT NULL
                     );
 
+                    CREATE TABLE IF NOT EXISTS zPlayerRpcSettings (
+                        Id INTEGER PRIMARY KEY CHECK (Id = 1),
+                        Enabled INTEGER NOT NULL,
+                        DisplayPaused INTEGER NOT NULL,
+                        DisplayAlbum INTEGER NOT NULL,
+                        StatusType INTEGER NOT NULL CHECK (StatusType BETWEEN 0 AND 2)
+                    );
+
                     CREATE TABLE IF NOT EXISTS Mixes (
                         Id TEXT PRIMARY KEY,
                         Title TEXT NOT NULL,
@@ -227,6 +235,52 @@ namespace zPlayer.Infrastructure.Storage
             command.Parameters.AddWithValue("$kind", (int)cover.Kind);
             command.Parameters.AddWithValue("$id", cover.OwnerId.ToString());
             command.Parameters.AddWithValue("$revision", cover.Revision);
+        }
+        #endregion
+
+        #region App Settings
+        public zPlayerRpcSettings LoadRpcSettings() {
+            using SqliteConnection connection = new(connectionString);
+            connection.Open();
+
+            using SqliteCommand command = connection.CreateCommand();
+            command.CommandText = """
+                SELECT Enabled, DisplayPaused, DisplayAlbum, StatusType
+                FROM zPlayerRpcSettings
+                WHERE Id = 1;
+            """;
+
+            using SqliteDataReader reader = command.ExecuteReader();
+            if (!reader.Read()) return new zPlayerRpcSettings();
+
+            return new zPlayerRpcSettings(
+                Enabled: reader.GetInt32(0) != 0,
+                DisplayPausedState: reader.GetInt32(1) != 0,
+                DisplayAlbumName: reader.GetInt32(2) != 0,
+                StatusType: reader.GetInt32(3)
+            );
+        }
+
+        public void SaveRpcSettings(zPlayerRpcSettings settings) {
+            using SqliteConnection connection = new(connectionString);
+            connection.Open();
+
+            using SqliteCommand command = connection.CreateCommand();
+            command.CommandText = """
+                INSERT INTO zPlayerRpcSettings (Id, Enabled, DisplayPaused, DisplayAlbum, StatusType)
+                VALUES (1, $enabled, $paused, $album, $statusType)
+                ON CONFLICT(Id) DO UPDATE SET
+                    Enabled = excluded.Enabled,
+                    DisplayPaused = excluded.DisplayPaused,
+                    DisplayAlbum = excluded.DisplayAlbum,
+                    StatusType = excluded.StatusType;
+            """;
+
+            command.Parameters.AddWithValue("$enabled", settings.Enabled ? 1 : 0);
+            command.Parameters.AddWithValue("$paused", settings.DisplayPausedState ? 1 : 0);
+            command.Parameters.AddWithValue("$album", settings.DisplayAlbumName ? 1 : 0);
+            command.Parameters.AddWithValue("$statusType", settings.StatusType);
+            command.ExecuteNonQuery();
         }
         #endregion
 

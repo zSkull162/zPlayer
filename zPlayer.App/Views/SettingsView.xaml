@@ -107,7 +107,7 @@
                                 <Image Grid.RowSpan="4" Source="/Assets/zPlayerImage.png" Height="100" Stretch="Fill"/>
 
                                 <TextBlock Grid.Column="1" Foreground="{StaticResource TextBrush}" Text="Song Title" FontSize="16" FontWeight="Bold"/>
-                                <TextBlock x:Name="PreviewArtistText" Grid.Column="1" Grid.Row="1" Foreground="{StaticResource TextBrush}" Text="Artist" FontSize="14"/>
+                                <TextBlock Grid.Column="1" Grid.Row="1" Foreground="{StaticResource TextBrush}" Text="Artist" FontSize="14"/>
                                 <TextBlock x:Name="PreviewAlbumText" Grid.Column="1" Grid.Row="2" Foreground="{StaticResource TextBrush}" Text="Album Name" FontSize="14"/>
                                 
                                 <StackPanel x:Name="PreviewProgressBar" Orientation="Horizontal" Grid.Column="1" Grid.Row="3" Visibility="Visible">
