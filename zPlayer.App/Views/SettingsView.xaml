@@ -41,21 +41,21 @@
                         <Grid>
                             <TextBlock Style="{StaticResource ToggleLabel}" Text="Audio output"/>
                             <ComboBox x:Name="AudioOutputBox" Style="{StaticResource RoundedComboBox}"
-                                                  HorizontalAlignment="Right" Margin="8" SelectionChanged="AudioOutputBox_SelectionChanged"/>
+                                                  HorizontalAlignment="Right" Margin="8" SelectionChanged="SettingComboBox_SelectionChanged"/>
                         </Grid>
                     </Border>
 
                     <Border Style="{StaticResource Panel}" CornerRadius="3" Margin="0,6">
                         <Grid>
                             <TextBlock Style="{StaticResource ToggleLabel}" Text="Audio Normalization"/>
-                            <CheckBox x:Name="AudioNormalizationToggle" Style="{StaticResource SettingsCheckbox}"/>
+                            <CheckBox x:Name="AudioNormalizationToggle" Style="{StaticResource SettingsCheckbox}" Click="SettingToggle_Click"/>
                         </Grid>
                     </Border>
 
                     <Border Style="{StaticResource Panel}" CornerRadius="3" Margin="0,6">
                         <Grid>
                             <TextBlock Style="{StaticResource ToggleLabel}" Text="Allow duplicate songs in playback queue"/>
-                            <CheckBox x:Name="DuplicateSongToggle" Style="{StaticResource SettingsCheckbox}"/>
+                            <CheckBox x:Name="DuplicateSongToggle" Style="{StaticResource SettingsCheckbox}" Click="SettingToggle_Click"/>
                         </Grid>
                     </Border>
 
@@ -67,23 +67,23 @@
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
                             <TextBlock Style="{StaticResource ToggleLabel}" Text="Discord Rich Presence"/>
-                            <CheckBox x:Name="RpcToggle" Style="{StaticResource SettingsCheckbox}" Click="RpcToggle_Click"/>
+                            <CheckBox x:Name="RpcToggle" Style="{StaticResource SettingsCheckbox}" Click="SettingToggle_Click"/>
 
                             <StackPanel x:Name="RpcOptions" Grid.Row="1" Orientation="Vertical" Margin="12,0,0,0" Visibility="Collapsed">
                                 <Separator Style="{StaticResource RoundedSeparator}"/>
                                 <Grid>
                                     <TextBlock Style="{StaticResource ToggleLabel}" Text="Display paused state"/>
-                                    <CheckBox x:Name="RpcDisplayPausedToggle" Style="{StaticResource SettingsCheckbox}" Click="RpcToggle_Click"/>
+                                    <CheckBox x:Name="RpcDisplayPausedToggle" Style="{StaticResource SettingsCheckbox}" Click="SettingToggle_Click"/>
                                 </Grid>
                                 <Grid>
                                     <TextBlock Style="{StaticResource ToggleLabel}" Text="Display album"/>
-                                    <CheckBox x:Name="RpcDisplayAlbumToggle" Style="{StaticResource SettingsCheckbox}" Click="RpcToggle_Click"/>
+                                    <CheckBox x:Name="RpcDisplayAlbumToggle" Style="{StaticResource SettingsCheckbox}" Click="SettingToggle_Click"/>
                                 </Grid>
                                 <Grid>
                                     <TextBlock Style="{StaticResource ToggleLabel}" Text="Status Type"/>
                                     <ComboBox x:Name="RpcStatusBox" Style="{StaticResource RoundedComboBox}"
                                                           SelectedIndex="2" HorizontalAlignment="Right" Margin="8"
-                                                          SelectionChanged="RpcStatusBox_SelectionChanged">
+                                                          SelectionChanged="SettingComboBox_SelectionChanged">
                                         <ComboBoxItem Content="App name"/>
                                         <ComboBoxItem Content="Song title"/>
                                         <ComboBoxItem Content="Song artist"/>
@@ -161,6 +161,7 @@
 
                     <Separator Style="{StaticResource RoundedSeparator}" Height="8"/>
 
+                    <!--Color options-->
                     <Border Style="{StaticResource Panel}" CornerRadius="3" Margin="0,6">
                         <StackPanel Orientation="Vertical">
                             <Grid>
@@ -171,7 +172,9 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Style="{StaticResource ToggleLabel}" Text="Background - Primary"/>
                                 <Rectangle Grid.Column="1" Margin="8,0" Height="4" Fill="{StaticResource BackgroundBrush}" RadiusX="2" RadiusY="2"/>
-                                <colorpicker:PortableColorPicker Grid.Column="2" ColorState="{Binding ElementName=main, Path=ColorState, Mode=TwoWay}"/>
+                                <Border Grid.Column="2" Margin="0,4,4,4" MinWidth="86" CornerRadius="3" ClipToBounds="True">
+                                    <colorpicker:PortableColorPicker x:Name="BackgroundPicker" Tag="BackgroundColor" ShowAlpha="False" ColorChanged="ThemeColor_Changed"/>
+                                </Border>
                             </Grid>
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -181,7 +184,9 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Style="{StaticResource ToggleLabel}" Text="Background - Secondary"/>
                                 <Rectangle Grid.Column="1" Margin="8,0" Height="4" Fill="{StaticResource SurfaceBrush}" RadiusX="2" RadiusY="2"/>
-                                <colorpicker:PortableColorPicker Grid.Column="2" ColorState="{Binding ElementName=main, Path=ColorState, Mode=TwoWay}"/>
+                                <Border Grid.Column="2" Margin="0,4,4,4" MinWidth="86" CornerRadius="3" ClipToBounds="True">
+                                    <colorpicker:PortableColorPicker x:Name="SurfacePicker" Tag="SurfaceColor" ShowAlpha="False" ColorChanged="ThemeColor_Changed"/>
+                                </Border>
                             </Grid>
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -191,7 +196,9 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Style="{StaticResource ToggleLabel}" Text="Border"/>
                                 <Rectangle Grid.Column="1" Margin="8,0" Height="4" Fill="{StaticResource BorderBrush}" RadiusX="2" RadiusY="2"/>
-                                <colorpicker:PortableColorPicker Grid.Column="2" ColorState="{Binding ElementName=main, Path=ColorState, Mode=TwoWay}"/>
+                                <Border Grid.Column="2" Margin="0,4,4,4" MinWidth="86" CornerRadius="3" ClipToBounds="True">
+                                    <colorpicker:PortableColorPicker x:Name="BorderPicker" Tag="BorderColor" ShowAlpha="False" ColorChanged="ThemeColor_Changed"/>
+                                </Border>
                             </Grid>
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -201,7 +208,9 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Style="{StaticResource ToggleLabel}" Text="Highlight"/>
                                 <Rectangle Grid.Column="1" Margin="8,0" Height="4" Fill="{StaticResource HighlightBrush}" RadiusX="2" RadiusY="2"/>
-                                <colorpicker:PortableColorPicker Grid.Column="2" ColorState="{Binding ElementName=main, Path=ColorState, Mode=TwoWay}"/>
+                                <Border Grid.Column="2" Margin="0,4,4,4" MinWidth="86" CornerRadius="3" ClipToBounds="True">
+                                    <colorpicker:PortableColorPicker x:Name="HighlightPicker" Tag="HighlightColor" ShowAlpha="False" ColorChanged="ThemeColor_Changed"/>
+                                </Border>
                             </Grid>
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -218,7 +227,9 @@
                                         </LinearGradientBrush>
                                     </Rectangle.Fill>
                                 </Rectangle>
-                                <colorpicker:PortableColorPicker Grid.Column="2" ColorState="{Binding ElementName=main, Path=ColorState, Mode=TwoWay}"/>
+                                <Border Grid.Column="2" Margin="0,4,4,4" MinWidth="86" CornerRadius="3" ClipToBounds="True">
+                                    <colorpicker:PortableColorPicker x:Name="SelectedPicker" Tag="SelectedColor" ShowAlpha="False" ColorChanged="ThemeColor_Changed"/>
+                                </Border>
                             </Grid>
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -235,7 +246,9 @@
                                         </LinearGradientBrush>
                                     </Rectangle.Fill>
                                 </Rectangle>
-                                <colorpicker:PortableColorPicker Grid.Column="2" ColorState="{Binding ElementName=main, Path=ColorState, Mode=TwoWay}"/>
+                                <Border Grid.Column="2" Margin="0,4,4,4" MinWidth="86" CornerRadius="3" ClipToBounds="True">
+                                    <colorpicker:PortableColorPicker x:Name="SelectedPickerSecondary" Tag="SelectedColorSecondary" ShowAlpha="False" ColorChanged="ThemeColor_Changed"/>
+                                </Border>
                             </Grid>
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -245,7 +258,9 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Style="{StaticResource ToggleLabel}" Text="Text"/>
                                 <Rectangle Grid.Column="1" Margin="8,0" Height="4" Fill="{StaticResource TextBrush}" RadiusX="2" RadiusY="2"/>
-                                <colorpicker:PortableColorPicker Grid.Column="2" ColorState="{Binding ElementName=main, Path=ColorState, Mode=TwoWay}"/>
+                                <Border Grid.Column="2" Margin="0,4,4,4" MinWidth="86" CornerRadius="3" ClipToBounds="True">
+                                    <colorpicker:PortableColorPicker x:Name="TextPicker" Tag="TextColor" ShowAlpha="False" ColorChanged="ThemeColor_Changed"/>
+                                </Border>
                             </Grid>
                         </StackPanel>
                     </Border>
@@ -255,25 +270,25 @@
                     <Border Style="{StaticResource Panel}" CornerRadius="3" Margin="0,6">
                         <Grid>
                             <TextBlock Style="{StaticResource ToggleLabel}" Text="Show summary on song import"/>
-                            <CheckBox x:Name="ImportSummaryToggle" Style="{StaticResource SettingsCheckbox}"/>
+                            <CheckBox x:Name="ImportSummaryToggle" Style="{StaticResource SettingsCheckbox}" Click="SettingToggle_Click"/>
                         </Grid>
                     </Border>
                     <Border Style="{StaticResource Panel}" CornerRadius="3" Margin="0,6">
                         <Grid>
                             <TextBlock Style="{StaticResource ToggleLabel}" Text="Show confirmation when deleting songs"/>
-                            <CheckBox x:Name="SongDeleteConfirmationToggle" Style="{StaticResource SettingsCheckbox}"/>
+                            <CheckBox x:Name="SongDeleteConfirmationToggle" Style="{StaticResource SettingsCheckbox}" Click="SettingToggle_Click"/>
                         </Grid>
                     </Border>
                     <Border Style="{StaticResource Panel}" CornerRadius="3" Margin="0,6">
                         <Grid>
                             <TextBlock Style="{StaticResource ToggleLabel}" Text="Show confirmation when deleting albums"/>
-                            <CheckBox x:Name="AlbumDeleteConfirmationToggle" Style="{StaticResource SettingsCheckbox}"/>
+                            <CheckBox x:Name="AlbumDeleteConfirmationToggle" Style="{StaticResource SettingsCheckbox}" Click="SettingToggle_Click"/>
                         </Grid>
                     </Border>
                     <Border Style="{StaticResource Panel}" CornerRadius="3" Margin="0,6">
                         <Grid>
                             <TextBlock Style="{StaticResource ToggleLabel}" Text="Show confirmation when deleting mixes"/>
-                            <CheckBox x:Name="MixDeleteConfirmationToggle" Style="{StaticResource SettingsCheckbox}"/>
+                            <CheckBox x:Name="MixDeleteConfirmationToggle" Style="{StaticResource SettingsCheckbox}" Click="SettingToggle_Click"/>
                         </Grid>
                     </Border>
                 </StackPanel>

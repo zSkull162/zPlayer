@@ -18,6 +18,7 @@ using zPlayer.App.Views;
 using zPlayer.Core;
 using zPlayer.Infrastructure;
 using zPlayer.Infrastructure.Storage;
+using zPlayer.App.Themes;
 #endregion
 
 namespace zPlayer.App
@@ -33,7 +34,8 @@ namespace zPlayer.App
 
         private readonly zPlayerRPC discordRPC;
         private zPlayerRpcSettings rpcSettings;
-        private AppSettings appSettings;
+        private AppSettings appSettings = new();
+        private ThemeSettings? savedTheme;
 
         private readonly SongCommands songCommands;
         private readonly AlbumCommands albumCommands;
@@ -65,7 +67,9 @@ namespace zPlayer.App
             InitializeComponent();
             InitDatabase();
             rpcSettings = database.LoadRpcSettings();
-            // appSettings = database.LoadAppSettings();
+            appSettings = database.LoadAppSettings();
+            savedTheme = appSettings.Theme;
+            ThemeManager.Apply(appSettings.Theme ?? new ThemeSettings());
             mediaKeys = new();
             InitMediaKeys();
             InitPlaybackUI();
@@ -336,6 +340,7 @@ namespace zPlayer.App
                 case "Settings":
                     SettingsView settingsView = new(rpcSettings, appSettings);
                     settingsView.SettingsChanged += (newRpcSettings, newAppSettings) => ApplySettingsViewChanges(settingsView, newRpcSettings, newAppSettings);
+                    settingsView.ThemeSaveRequested += SaveThemeSettings;
                     MainContent.Content = settingsView;
                     break;
             }
@@ -784,14 +789,31 @@ namespace zPlayer.App
                     discordRPC.Update(rpcSettings, player.GetCurrentSong(), player.IsPlaying, player.Position, player.Duration);
                 }
                 if (appSettings != newAppSettings) {
-                    // database.SaveAppSettings(newAppSettings);
+                    AppSettings previousOptions = appSettings with { Theme = null };
+                    AppSettings newOptions = newAppSettings with { Theme = null };
+
+                    if (previousOptions != newOptions) {
+                        database.SaveAppSettings(newAppSettings with { Theme = savedTheme });
+                    }
                     appSettings = newAppSettings;
                 }
             }
             catch (Exception ex) {
                 view.LoadSettings(rpcSettings, appSettings);
-                MessageBox.Show(this, $"Could not save Discord RPC settings:\n{ex.Message}", "Settings Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(this, $"Could not save settings:\n{ex.Message}", "Settings Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
+            }
+        }
+
+        private void SaveThemeSettings(ThemeSettings newTheme) {
+            try {
+                AppSettings updated = appSettings with { Theme = newTheme };
+                database.SaveAppSettings(updated);
+                appSettings = updated;
+                savedTheme = newTheme;
+            }
+            catch (Exception ex) {
+                MessageBox.Show(this, $"Could not save the theme:\n{ex.Message}", "Settings Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 

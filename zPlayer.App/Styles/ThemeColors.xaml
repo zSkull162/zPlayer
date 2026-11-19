@@ -10,11 +10,11 @@
     <Color x:Key="SelectedColorSecondary">#27c0d9</Color>
     <Color x:Key="TextColor">#F2F2F2</Color>
 
-    <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}"/>
-    <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource SurfaceColor}"/>
-    <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}"/>
-    <SolidColorBrush x:Key="HighlightBrush" Color="{StaticResource HighlightColor}"/>
-    <SolidColorBrush x:Key="SelectedBrush" Color="{StaticResource SelectedColor}"/>
-    <SolidColorBrush x:Key="SelectedBrushSecondary" Color="{StaticResource SelectedColorSecondary}"/>
-    <SolidColorBrush x:Key="TextBrush" Color="{StaticResource TextColor}"/>
+    <SolidColorBrush x:Key="BackgroundBrush" Color="{DynamicResource BackgroundColor}"/>
+    <SolidColorBrush x:Key="SurfaceBrush" Color="{DynamicResource SurfaceColor}"/>
+    <SolidColorBrush x:Key="BorderBrush" Color="{DynamicResource BorderColor}"/>
+    <SolidColorBrush x:Key="HighlightBrush" Color="{DynamicResource HighlightColor}"/>
+    <SolidColorBrush x:Key="SelectedBrush" Color="{DynamicResource SelectedColor}"/>
+    <SolidColorBrush x:Key="SelectedBrushSecondary" Color="{DynamicResource SelectedColorSecondary}"/>
+    <SolidColorBrush x:Key="TextBrush" Color="{DynamicResource TextColor}"/>
 </ResourceDictionary>

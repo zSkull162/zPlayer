@@ -1,8 +1,11 @@
-﻿using DiscordRPC;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
+using System.Windows.Media;
+using DiscordRPC;
+using ColorPicker;
 using zPlayer.Core;
+using zPlayer.App.Themes;
 
 namespace zPlayer.App.Views
 {
@@ -10,8 +13,10 @@ namespace zPlayer.App.Views
     {
         private readonly BitmapImage playIcon = new(new Uri("pack://application:,,,/Assets/Icons/Play_32x.png"));
         private readonly BitmapImage pauseIcon = new(new Uri("pack://application:,,,/Assets/Icons/Pause_32x.png"));
+        private ThemeSettings theme = new();
 
         public event Action<zPlayerRpcSettings, AppSettings>? SettingsChanged;
+        public event Action<ThemeSettings>? ThemeSaveRequested;
         private bool loadingSettings;
         private bool previewIsPaused;
 
@@ -21,6 +26,8 @@ namespace zPlayer.App.Views
             previewIsPaused = false;
             PreviewPlayPauseIcon.Source = pauseIcon;
             UpdateRpcPreview();
+
+            Unloaded += (_, _) => ThemeSaveRequested?.Invoke(theme);
         }
 
         public void LoadSettings(zPlayerRpcSettings rpcSettings, AppSettings appSettings) {
@@ -36,10 +43,22 @@ namespace zPlayer.App.Views
                 AlbumDeleteConfirmationToggle.IsChecked = appSettings.ShowAlbumDeleteConfirmation;
                 MixDeleteConfirmationToggle.IsChecked= appSettings.ShowMixDeleteConfirmation;
                 DuplicateSongToggle.IsChecked = appSettings.AllowDuplicatePlaybackSongs;
+
+                theme = appSettings.Theme ?? new ThemeSettings();
+                ThemeManager.Apply(theme);
+
+                BackgroundPicker.SelectedColor = (Color)Application.Current.FindResource("BackgroundColor");
+                SurfacePicker.SelectedColor = (Color)Application.Current.FindResource("SurfaceColor");
+                BorderPicker.SelectedColor = (Color)Application.Current.FindResource("BorderColor");
+                HighlightPicker.SelectedColor = (Color)Application.Current.FindResource("HighlightColor");
+                SelectedPicker.SelectedColor = (Color)Application.Current.FindResource("SelectedColor");
+                SelectedPickerSecondary.SelectedColor = (Color)Application.Current.FindResource("SelectedColorSecondary");
+                TextPicker.SelectedColor = (Color)Application.Current.FindResource("TextColor");
             }
             finally {
                 loadingSettings = false;
             }
+            UpdateRpcPreview();
         }
 
         private void SaveSettings() {
@@ -57,10 +76,14 @@ namespace zPlayer.App.Views
                     ShowSongDeleteConfirmation: SongDeleteConfirmationToggle.IsChecked == true,
                     ShowAlbumDeleteConfirmation: AlbumDeleteConfirmationToggle.IsChecked == true,
                     ShowMixDeleteConfirmation: MixDeleteConfirmationToggle.IsChecked == true,
-                    AllowDuplicatePlaybackSongs: DuplicateSongToggle.IsChecked == true
+                    AllowDuplicatePlaybackSongs: DuplicateSongToggle.IsChecked == true,
+                    Theme: theme
                 )
             );
         }
+
+        private void SettingComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) => SaveSettings();
+        private void SettingToggle_Click(object sender, RoutedEventArgs e) => SaveSettings();
 
         #region Discord RPC
         private void UpdateRpcPreview() {
@@ -98,24 +121,18 @@ namespace zPlayer.App.Views
             PreviewPlayPauseIcon.Source = previewIsPaused ? playIcon : pauseIcon;
         }
 
-        private void RpcStatusBox_SelectionChanged(object sender, SelectionChangedEventArgs e) {
-            SaveSettings();
-        }
-
-        private void RpcToggle_Click(object sender, RoutedEventArgs e) {
-            SaveSettings();
-        }
-
         private void PreviewPlayPause_Click(object sender, RoutedEventArgs e) {
             previewIsPaused = !previewIsPaused;
             UpdateRpcPausedState();
         }
         #endregion
 
-        #region App
-        private void AudioOutputBox_SelectionChanged(object sender, SelectionChangedEventArgs e) {
-            
+        private void ThemeColor_Changed(object sender, RoutedEventArgs e) {
+            if (loadingSettings || sender is not PortableColorPicker picker || picker.Tag is not string key) return;
+
+            ThemeManager.SetColor(key, picker.SelectedColor);
+            theme = ThemeManager.Capture();
+            SaveSettings();
         }
-        #endregion
     }
 }

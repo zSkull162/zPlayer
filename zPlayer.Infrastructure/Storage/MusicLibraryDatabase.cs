@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using Microsoft.Data.Sqlite;
 using zPlayer.Core;
+using System.Text.Json;
 
 namespace zPlayer.Infrastructure.Storage
 {
@@ -61,6 +62,11 @@ namespace zPlayer.Infrastructure.Storage
                         DisplayPaused INTEGER NOT NULL,
                         DisplayAlbum INTEGER NOT NULL,
                         StatusType INTEGER NOT NULL CHECK (StatusType BETWEEN 0 AND 2)
+                    );
+
+                    CREATE TABLE IF NOT EXISTS AppSettings (
+                        Id INTEGER PRIMARY KEY CHECK (Id = 1),
+                        SettingsJson TEXT NOT NULL
                     );
 
                     CREATE TABLE IF NOT EXISTS Mixes (
@@ -280,6 +286,33 @@ namespace zPlayer.Infrastructure.Storage
             command.Parameters.AddWithValue("$paused", settings.DisplayPausedState ? 1 : 0);
             command.Parameters.AddWithValue("$album", settings.DisplayAlbumName ? 1 : 0);
             command.Parameters.AddWithValue("$statusType", settings.StatusType);
+            command.ExecuteNonQuery();
+        }
+
+        public AppSettings LoadAppSettings() {
+            using SqliteConnection connection = new(connectionString);
+            connection.Open();
+
+            using SqliteCommand command = connection.CreateCommand();
+            command.CommandText = "SELECT SettingsJson FROM AppSettings WHERE Id = 1;";
+            string? json = command.ExecuteScalar() as string;
+
+            return json == null ? new AppSettings() : JsonSerializer.Deserialize<AppSettings>(json)
+                    ?? throw new InvalidOperationException("The saved app settings are invalid.");
+        }
+
+        public void SaveAppSettings(AppSettings settings) {
+            using SqliteConnection connection = new(connectionString);
+            connection.Open();
+
+            using SqliteCommand command = connection.CreateCommand();
+            command.CommandText = """
+                INSERT INTO AppSettings (Id, SettingsJson)
+                VALUES (1, $settings)
+                ON CONFLICT(Id) DO UPDATE SET SettingsJson = excluded.SettingsJson;
+            """;
+
+            command.Parameters.AddWithValue("$settings", JsonSerializer.Serialize(settings));
             command.ExecuteNonQuery();
         }
         #endregion
