@@ -13,8 +13,11 @@ namespace zPlayer.Core
         int StatusType = 2
     );
 
-    public sealed class AppSettings
-    {
-        
-    }
+    public sealed record AppSettings(
+        bool ShowImportSummary = true,
+        bool ShowSongDeleteConfirmation = true,
+        bool ShowAlbumDeleteConfirmation = true,
+        bool ShowMixDeleteConfirmation = true,
+        bool AllowDuplicatePlaybackSongs = false
+    );
 }

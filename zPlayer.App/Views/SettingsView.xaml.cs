@@ -11,26 +11,31 @@ namespace zPlayer.App.Views
         private readonly BitmapImage playIcon = new(new Uri("pack://application:,,,/Assets/Icons/Play_32x.png"));
         private readonly BitmapImage pauseIcon = new(new Uri("pack://application:,,,/Assets/Icons/Pause_32x.png"));
 
-        public event Action<zPlayerRpcSettings>? SettingsChanged;
+        public event Action<zPlayerRpcSettings, AppSettings>? SettingsChanged;
         private bool loadingSettings;
         private bool previewIsPaused;
 
-        public SettingsView(zPlayerRpcSettings settings) {
+        public SettingsView(zPlayerRpcSettings rpcSettings, AppSettings appSettings) {
             InitializeComponent();
-            LoadSettings(settings);
+            LoadSettings(rpcSettings, appSettings);
             previewIsPaused = false;
             PreviewPlayPauseIcon.Source = pauseIcon;
-            // PreviewPlayPauseButton.Visibility = Visibility.Collapsed;
             UpdateRpcPreview();
         }
 
-        public void LoadSettings(zPlayerRpcSettings settings) {
+        public void LoadSettings(zPlayerRpcSettings rpcSettings, AppSettings appSettings) {
             loadingSettings = true;
             try {
-                RpcToggle.IsChecked = settings.Enabled;
-                RpcDisplayPausedToggle.IsChecked = settings.DisplayPausedState;
-                RpcDisplayAlbumToggle.IsChecked = settings.DisplayAlbumName;
-                RpcStatusBox.SelectedIndex = settings.StatusType;
+                RpcToggle.IsChecked = rpcSettings.Enabled;
+                RpcDisplayPausedToggle.IsChecked = rpcSettings.DisplayPausedState;
+                RpcDisplayAlbumToggle.IsChecked = rpcSettings.DisplayAlbumName;
+                RpcStatusBox.SelectedIndex = rpcSettings.StatusType;
+
+                ImportSummaryToggle.IsChecked = appSettings.ShowImportSummary;
+                SongDeleteConfirmationToggle.IsChecked = appSettings.ShowSongDeleteConfirmation;
+                AlbumDeleteConfirmationToggle.IsChecked = appSettings.ShowAlbumDeleteConfirmation;
+                MixDeleteConfirmationToggle.IsChecked= appSettings.ShowMixDeleteConfirmation;
+                DuplicateSongToggle.IsChecked = appSettings.AllowDuplicatePlaybackSongs;
             }
             finally {
                 loadingSettings = false;
@@ -40,15 +45,24 @@ namespace zPlayer.App.Views
         private void SaveSettings() {
             if (loadingSettings || RpcStatusBox.SelectedIndex < 0) return;
             UpdateRpcPreview();
-            SettingsChanged?.Invoke(new zPlayerRpcSettings(
+            SettingsChanged?.Invoke(
+                new zPlayerRpcSettings(
                     Enabled: RpcToggle.IsChecked == true,
                     DisplayPausedState: RpcDisplayPausedToggle.IsChecked == true,
                     DisplayAlbumName: RpcDisplayAlbumToggle.IsChecked == true,
                     StatusType: RpcStatusBox.SelectedIndex
+                ),
+                new AppSettings(
+                    ShowImportSummary: ImportSummaryToggle.IsChecked == true,
+                    ShowSongDeleteConfirmation: SongDeleteConfirmationToggle.IsChecked == true,
+                    ShowAlbumDeleteConfirmation: AlbumDeleteConfirmationToggle.IsChecked == true,
+                    ShowMixDeleteConfirmation: MixDeleteConfirmationToggle.IsChecked == true,
+                    AllowDuplicatePlaybackSongs: DuplicateSongToggle.IsChecked == true
                 )
             );
         }
 
+        #region Discord RPC
         private void UpdateRpcPreview() {
             if (PreviewUserArtistText == null) return;
 
@@ -82,7 +96,6 @@ namespace zPlayer.App.Views
             PreviewProgressBar.Visibility = previewIsPaused ? Visibility.Collapsed : Visibility.Visible;
             PreviewPausedInfo.Visibility = previewIsPaused ? Visibility.Visible : Visibility.Collapsed;
             PreviewPlayPauseIcon.Source = previewIsPaused ? playIcon : pauseIcon;
-            // PreviewPlayPauseButton.Visibility = displayPaused ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void RpcStatusBox_SelectionChanged(object sender, SelectionChangedEventArgs e) {
@@ -97,5 +110,12 @@ namespace zPlayer.App.Views
             previewIsPaused = !previewIsPaused;
             UpdateRpcPausedState();
         }
+        #endregion
+
+        #region App
+        private void AudioOutputBox_SelectionChanged(object sender, SelectionChangedEventArgs e) {
+            
+        }
+        #endregion
     }
 }

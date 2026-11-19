@@ -33,6 +33,7 @@ namespace zPlayer.App
 
         private readonly zPlayerRPC discordRPC;
         private zPlayerRpcSettings rpcSettings;
+        private AppSettings appSettings;
 
         private readonly SongCommands songCommands;
         private readonly AlbumCommands albumCommands;
@@ -64,6 +65,7 @@ namespace zPlayer.App
             InitializeComponent();
             InitDatabase();
             rpcSettings = database.LoadRpcSettings();
+            // appSettings = database.LoadAppSettings();
             mediaKeys = new();
             InitMediaKeys();
             InitPlaybackUI();
@@ -332,20 +334,8 @@ namespace zPlayer.App
                     MainContent.Content = mixesView;
                     break;
                 case "Settings":
-                    SettingsView settingsView = new(rpcSettings);
-                    settingsView.SettingsChanged += settings => {
-                        if (settings == rpcSettings) return;
-                        try {
-                            database.SaveRpcSettings(settings);
-                            rpcSettings = settings;
-                            discordRPC.Update(rpcSettings, player.GetCurrentSong(), player.IsPlaying, player.Position, player.Duration);
-                        }
-                        catch (Exception ex) {
-                            settingsView.LoadSettings(rpcSettings);
-                            MessageBox.Show(this, $"Could not save Discord RPC settings:\n{ex.Message}", "Settings Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                            return;
-                        }
-                    };
+                    SettingsView settingsView = new(rpcSettings, appSettings);
+                    settingsView.SettingsChanged += (newRpcSettings, newAppSettings) => ApplySettingsViewChanges(settingsView, newRpcSettings, newAppSettings);
                     MainContent.Content = settingsView;
                     break;
             }
@@ -784,6 +774,26 @@ namespace zPlayer.App
             OpenPopup(view);
         }
         #endregion
+
+        private void ApplySettingsViewChanges(SettingsView view, zPlayerRpcSettings newRpcSettings, AppSettings newAppSettings) {
+            try {
+                if (rpcSettings != newRpcSettings) {
+                    database.SaveRpcSettings(newRpcSettings);
+                    rpcSettings = newRpcSettings;
+
+                    discordRPC.Update(rpcSettings, player.GetCurrentSong(), player.IsPlaying, player.Position, player.Duration);
+                }
+                if (appSettings != newAppSettings) {
+                    // database.SaveAppSettings(newAppSettings);
+                    appSettings = newAppSettings;
+                }
+            }
+            catch (Exception ex) {
+                view.LoadSettings(rpcSettings, appSettings);
+                MessageBox.Show(this, $"Could not save Discord RPC settings:\n{ex.Message}", "Settings Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+        }
 
         private void OpenAlbumDetails(Album album) {
             AlbumDetailsView detailsView = new(album, songCommands);

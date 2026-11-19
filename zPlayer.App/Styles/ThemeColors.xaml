@@ -15,5 +15,6 @@
     <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}"/>
     <SolidColorBrush x:Key="HighlightBrush" Color="{StaticResource HighlightColor}"/>
     <SolidColorBrush x:Key="SelectedBrush" Color="{StaticResource SelectedColor}"/>
+    <SolidColorBrush x:Key="SelectedBrushSecondary" Color="{StaticResource SelectedColorSecondary}"/>
     <SolidColorBrush x:Key="TextBrush" Color="{StaticResource TextColor}"/>
 </ResourceDictionary>
