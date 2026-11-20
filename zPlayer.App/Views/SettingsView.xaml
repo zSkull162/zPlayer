@@ -58,6 +58,8 @@
         <Grid Grid.Row="1" Margin="8,2,4,0">
             <ScrollViewer HorizontalScrollBarVisibility="Disabled">
                 <StackPanel Grid.Row="1" Orientation="Vertical" Margin="0,0,4,0">
+                    <TextBlock Text="Playback" Style="{StaticResource Header}" FontSize="14" Padding="4"/>
+
                     <Border Style="{StaticResource Panel}" CornerRadius="3" Margin="0,6">
                         <Grid>
                             <TextBlock Style="{StaticResource ToggleLabel}" Text="Audio output"/>
@@ -182,6 +184,7 @@
 
                     <Separator Style="{StaticResource RoundedSeparator}" Height="8"/>
 
+                    <TextBlock Text="Appearance" Style="{StaticResource Header}" FontSize="14" Padding="4"/>
                     <!--Color options-->
                     <Border Style="{StaticResource Panel}" CornerRadius="3" Margin="0,6">
                         <StackPanel Orientation="Vertical">
@@ -330,6 +333,7 @@
 
                     <Separator Style="{StaticResource RoundedSeparator}" Height="8"/>
 
+                    <TextBlock Text="App" Style="{StaticResource Header}" FontSize="14" Padding="4"/>
                     <Border Style="{StaticResource Panel}" CornerRadius="3" Margin="0,6">
                         <Grid>
                             <TextBlock Style="{StaticResource ToggleLabel}" Text="Show summary on song import"/>

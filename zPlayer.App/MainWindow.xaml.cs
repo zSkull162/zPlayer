@@ -425,8 +425,8 @@ namespace zPlayer.App
                 if (MainContent.Content is AlbumsView albumsView) albumsView.RefreshAlbums();
                 else if (MainContent.Content is AlbumDetailsView detailsView) detailsView.RefreshView();
                 else RefreshMixViews();
-                
-                if (fromFolder || errors.Count > 0) {
+
+                if (appSettings.ShowImportSummary || errors.Count > 0) {
                     string summary = $"Imported: {imported}\nAlready in library: {skipped}\nFailed files: {errors.Count}";
                     if (fromFolder) summary += $"\nFolders that could not be read: {scanErrors.Count}";
                     if (fromFolder && paths.Count == 0 && scanErrors.Count == 0) {
@@ -887,25 +887,10 @@ namespace zPlayer.App
         }
 
         #region Delete/Save methods
-        private void DeleteSong(Song song) {
-            if (MessageBox.Show(this, $"Remove \"{song.Title}\" from your library?", "Delete Song", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
-            try {
-                database.DeleteSong(song.Id);
-            }
-            catch (Exception ex) {
-                MessageBox.Show(this, $"Could not delete the song:\n{ex.Message}", "Delete Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
-            }
-            library.RemoveSong(song.Id);
-
-            int queueIndex = player.GetQueueSongs().FindIndex(existing => existing.Id == song.Id);
-            if (queueIndex >= 0) player.RemoveQueueIndex(queueIndex);
-
-            RefreshAfterSongEdit();
-        }
-
         private void DeleteSongs(Song[] songs) {
-            if (MessageBox.Show(this, $"Remove {songs.Length} selected song(s) from the library?", "Delete Songs", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
+            if (appSettings.ShowSongDeleteConfirmation) {
+                if (MessageBox.Show(this, $"Remove {songs.Length} selected song(s) from the library?", "Delete Songs", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
+            }
 
             try {
                 database.DeleteSongs(songs.Select(song => song.Id));
@@ -927,7 +912,9 @@ namespace zPlayer.App
         }
 
         private void DeleteAlbums(Album[] albums) {
-            if (MessageBox.Show(this, $"Remove {albums.Length} selected album(s)? Their songs will stay in the library.", "Delete Albums", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
+            if (appSettings.ShowAlbumDeleteConfirmation) {
+                if (MessageBox.Show(this, $"Remove {albums.Length} selected album(s)? Their songs will stay in the library.", "Delete Albums", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
+            }
 
             try {
                 database.DeleteAlbums(albums.Select(album => album.Id));
@@ -974,7 +961,9 @@ namespace zPlayer.App
         }
 
         private void DeleteMixes(Mix[] mixes) {
-            if (MessageBox.Show(this, $"Delete {mixes.Length} selected mix(es)?", "Delete Mixes", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
+            if (appSettings.ShowMixDeleteConfirmation) {
+                if (MessageBox.Show(this, $"Delete {mixes.Length} selected mix(es)?", "Delete Mixes", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
+            }
 
             try {
                 database.DeleteMixes(mixes.Select(mix => mix.Id));
