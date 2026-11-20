@@ -54,7 +54,7 @@
                 </Grid>
             </Grid>
 
-            <Separator Height="13" Background="{StaticResource BorderBrush}"/>
+            <Separator Height="13" Background="{DynamicResource BorderBrush}"/>
             <!--Title-->
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -79,7 +79,7 @@
                          Style="{StaticResource RoundedTextBox}" Grid.Column="1" Height="30" Margin="0,4" Padding="2,0"/>
             </Grid>
 
-            <Separator Height="13" Background="{StaticResource BorderBrush}"/>
+            <Separator Height="13" Background="{DynamicResource BorderBrush}"/>
             <!--Album-->
             <Grid>
                 <Grid.ColumnDefinitions>

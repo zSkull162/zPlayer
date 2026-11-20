@@ -12,7 +12,7 @@
     <UserControl.Resources>
 
         <Style TargetType="TextBlock" x:Key="AlbumTitle">
-            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
             <Setter Property="FontSize" Value="12"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
@@ -20,7 +20,7 @@
             <Setter Property="ToolTip" Value="{Binding Title}"/>
         </Style>
         <Style TargetType="TextBlock" x:Key="AlbumArtist">
-            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
             <Setter Property="FontSize" Value="10"/>
             <Setter Property="Opacity" Value="0.5"/>
             <Setter Property="TextTrimming" Value="CharacterEllipsis"/>

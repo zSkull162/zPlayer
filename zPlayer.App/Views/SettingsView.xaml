@@ -126,17 +126,17 @@
                                             <ImageBrush ImageSource="/Assets/Icons/DefaultPFP.png" Stretch="Fill"/>
                                         </Ellipse.Fill>
                                     </Ellipse>
-                                    <Ellipse Grid.Row="1" Width="22" Height="22" Fill="ForestGreen" StrokeThickness="4" Stroke="{StaticResource SurfaceBrush}"
+                                    <Ellipse Grid.Row="1" Width="22" Height="22" Fill="ForestGreen" StrokeThickness="4" Stroke="{DynamicResource SurfaceBrush}"
                                                    HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="-3"/>
 
-                                    <TextBlock Grid.Column="1" Foreground="{StaticResource TextBrush}" Text="Username" FontSize="18" FontWeight="Bold" Margin="12,0,0,0"/>
+                                    <TextBlock Grid.Column="1" Foreground="{DynamicResource TextBrush}" Text="Username" FontSize="18" FontWeight="Bold" Margin="12,0,0,0"/>
                                     <StackPanel Grid.Column="1" Grid.Row="1" Orientation="Horizontal" Margin="12,0,0,0">
                                         <Image Source="/Assets/Icons/MusicGreen_32x.png" Stretch="Uniform" Margin="0,4,6,4"/>
-                                        <TextBlock x:Name="PreviewUserArtistText" Foreground="{StaticResource TextBrush}" Text="Artist" FontSize="14" VerticalAlignment="Center"/>
+                                        <TextBlock x:Name="PreviewUserArtistText" Foreground="{DynamicResource TextBrush}" Text="Artist" FontSize="14" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </Grid>
                                 <Separator Style="{StaticResource RoundedSeparator}"/>
-                                <TextBlock Foreground="{StaticResource TextBrush}" Text="Listening to zPlayer" FontSize="14" Margin="10,0,0,0"/>
+                                <TextBlock Foreground="{DynamicResource TextBrush}" Text="Listening to zPlayer" FontSize="14" Margin="10,0,0,0"/>
                                 <Grid Margin="4,8,0,4"> <!--Expanded status preview-->
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="100"/>
@@ -151,18 +151,18 @@
                                     </Grid.RowDefinitions>
                                     <Image Grid.RowSpan="4" Source="/Assets/zPlayerImage.png" Height="100" Stretch="Fill"/>
 
-                                    <TextBlock Grid.Column="1" Foreground="{StaticResource TextBrush}" Text="Song Title" FontSize="16" FontWeight="Bold"/>
-                                    <TextBlock Grid.Column="1" Grid.Row="1" Foreground="{StaticResource TextBrush}" Text="Artist" FontSize="14"/>
-                                    <TextBlock x:Name="PreviewAlbumText" Grid.Column="1" Grid.Row="2" Foreground="{StaticResource TextBrush}" Text="Album Name" FontSize="14"/>
+                                    <TextBlock Grid.Column="1" Foreground="{DynamicResource TextBrush}" Text="Song Title" FontSize="16" FontWeight="Bold"/>
+                                    <TextBlock Grid.Column="1" Grid.Row="1" Foreground="{DynamicResource TextBrush}" Text="Artist" FontSize="14"/>
+                                    <TextBlock x:Name="PreviewAlbumText" Grid.Column="1" Grid.Row="2" Foreground="{DynamicResource TextBrush}" Text="Album Name" FontSize="14"/>
 
                                     <StackPanel x:Name="PreviewProgressBar" Orientation="Horizontal" Grid.Column="1" Grid.Row="3" Visibility="Visible">
-                                        <TextBlock Grid.Column="1" Grid.Row="3" Foreground="{StaticResource TextBrush}" Text="01:30"
+                                        <TextBlock Grid.Column="1" Grid.Row="3" Foreground="{DynamicResource TextBrush}" Text="01:30"
                                                              FontFamily="Cascadia Code"  FontSize="14" VerticalAlignment="Center"/>
                                         <Grid Margin="8,0">
                                             <Rectangle Fill="Gray" Width="150" Height="2" RadiusX="1" RadiusY="1" Opacity="0.5"/>
                                             <Rectangle Fill="White" Width="75" Height="2" RadiusX="1" RadiusY="1" HorizontalAlignment="Left"/>
                                         </Grid>
-                                        <TextBlock Grid.Column="1" Grid.Row="3" Foreground="{StaticResource TextBrush}" Text="03:00"
+                                        <TextBlock Grid.Column="1" Grid.Row="3" Foreground="{DynamicResource TextBrush}" Text="03:00"
                                                              FontFamily="Cascadia Code" FontSize="14" VerticalAlignment="Center"/>
                                     </StackPanel>
 
@@ -193,7 +193,7 @@
                                     <ColumnDefinition Width="46"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Style="{StaticResource ToggleLabel}" Text="Background - Primary"/>
-                                <Rectangle Grid.Column="1" Margin="8,0" Height="4" Fill="{StaticResource BackgroundBrush}" RadiusX="2" RadiusY="2"/>
+                                <Rectangle Grid.Column="1" Margin="8,0" Height="4" Fill="{DynamicResource BackgroundBrush}" RadiusX="2" RadiusY="2"/>
                                 <Border Grid.Column="2" Style="{StaticResource ColorPickerBorder}">
                                     <colorpicker:PortableColorPicker x:Name="BackgroundPicker" Tag="BackgroundColor" Style="{StaticResource ColorPicker}" ColorChanged="ThemeColor_Changed"/>
                                 </Border>
@@ -211,7 +211,7 @@
                                     <ColumnDefinition Width="46"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Style="{StaticResource ToggleLabel}" Text="Background - Secondary"/>
-                                <Rectangle Grid.Column="1" Margin="8,0" Height="4" Fill="{StaticResource SurfaceBrush}" RadiusX="2" RadiusY="2"/>
+                                <Rectangle Grid.Column="1" Margin="8,0" Height="4" Fill="{DynamicResource SurfaceBrush}" RadiusX="2" RadiusY="2"/>
                                 <Border Grid.Column="2" Style="{StaticResource ColorPickerBorder}">
                                     <colorpicker:PortableColorPicker x:Name="SurfacePicker" Tag="SurfaceColor" Style="{StaticResource ColorPicker}" ColorChanged="ThemeColor_Changed"/>
                                 </Border>
@@ -229,7 +229,7 @@
                                     <ColumnDefinition Width="46"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Style="{StaticResource ToggleLabel}" Text="Border"/>
-                                <Rectangle Grid.Column="1" Margin="8,0" Height="4" Fill="{StaticResource BorderBrush}" RadiusX="2" RadiusY="2"/>
+                                <Rectangle Grid.Column="1" Margin="8,0" Height="4" Fill="{DynamicResource BorderBrush}" RadiusX="2" RadiusY="2"/>
                                 <Border Grid.Column="2" Style="{StaticResource ColorPickerBorder}">
                                     <colorpicker:PortableColorPicker x:Name="BorderPicker" Tag="BorderColor" Style="{StaticResource ColorPicker}" ColorChanged="ThemeColor_Changed"/>
                                 </Border>
@@ -247,7 +247,7 @@
                                     <ColumnDefinition Width="46"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Style="{StaticResource ToggleLabel}" Text="Highlight"/>
-                                <Rectangle Grid.Column="1" Margin="8,0" Height="4" Fill="{StaticResource HighlightBrush}" RadiusX="2" RadiusY="2"/>
+                                <Rectangle Grid.Column="1" Margin="8,0" Height="4" Fill="{DynamicResource HighlightBrush}" RadiusX="2" RadiusY="2"/>
                                 <Border Grid.Column="2" Style="{StaticResource ColorPickerBorder}">
                                     <colorpicker:PortableColorPicker x:Name="HighlightPicker" Tag="HighlightColor" Style="{StaticResource ColorPicker}" ColorChanged="ThemeColor_Changed"/>
                                 </Border>
@@ -268,8 +268,8 @@
                                 <Rectangle Grid.Column="1" Margin="8,0" Height="4" RadiusX="2" RadiusY="2">
                                     <Rectangle.Fill>
                                         <LinearGradientBrush>
-                                            <GradientStop Color="{StaticResource SelectedColor}" Offset="0.6"/>
-                                            <GradientStop Color="{StaticResource SelectedColorSecondary}" Offset="1"/>
+                                            <GradientStop Color="{DynamicResource SelectedColor}" Offset="0.6"/>
+                                            <GradientStop Color="{DynamicResource SelectedColorSecondary}" Offset="1"/>
                                         </LinearGradientBrush>
                                     </Rectangle.Fill>
                                 </Rectangle>
@@ -293,8 +293,8 @@
                                 <Rectangle Grid.Column="1" Margin="8,0" Height="4" RadiusX="2" RadiusY="2">
                                     <Rectangle.Fill>
                                         <LinearGradientBrush>
-                                            <GradientStop Color="{StaticResource SelectedColorSecondary}" Offset="0.6"/>
-                                            <GradientStop Color="{StaticResource SelectedColor}" Offset="1"/>
+                                            <GradientStop Color="{DynamicResource SelectedColorSecondary}" Offset="0.6"/>
+                                            <GradientStop Color="{DynamicResource SelectedColor}" Offset="1"/>
                                         </LinearGradientBrush>
                                     </Rectangle.Fill>
                                 </Rectangle>
@@ -315,7 +315,7 @@
                                     <ColumnDefinition Width="46"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Style="{StaticResource ToggleLabel}" Text="Text"/>
-                                <Rectangle Grid.Column="1" Margin="8,0" Height="4" Fill="{StaticResource TextBrush}" RadiusX="2" RadiusY="2"/>
+                                <Rectangle Grid.Column="1" Margin="8,0" Height="4" Fill="{DynamicResource TextBrush}" RadiusX="2" RadiusY="2"/>
                                 <Border Grid.Column="2" Style="{StaticResource ColorPickerBorder}">
                                     <colorpicker:PortableColorPicker x:Name="TextPicker" Tag="TextColor" Style="{StaticResource ColorPicker}" ColorChanged="ThemeColor_Changed"/>
                                 </Border>

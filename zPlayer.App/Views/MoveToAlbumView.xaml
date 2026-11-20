@@ -24,7 +24,7 @@
 
         <TextBlock Text="Move Song to Album" Style="{StaticResource WindowTitle}"
                    HorizontalAlignment="Center" Margin="0,0,0,4"/>
-        <TextBlock Text="{Binding Title}" FontSize="18" Foreground="{StaticResource TextBrush}"
+        <TextBlock Text="{Binding Title}" FontSize="18" Foreground="{DynamicResource TextBrush}"
                    TextTrimming="CharacterEllipsis" Grid.Row="1"
                    HorizontalAlignment="Center" Margin="0,0,0,4"/>
 
@@ -38,7 +38,7 @@
             </Border>
 
             <StackPanel Margin="8,0,0,2" Grid.Column="1">
-                <TextBlock Text="From" FontSize="16" FontStyle="Italic" Foreground="{StaticResource TextBrush}"/>
+                <TextBlock Text="From" FontSize="16" FontStyle="Italic" Foreground="{DynamicResource TextBrush}"/>
                 <TextBox IsEnabled="False" Style="{StaticResource RoundedTextBox}" Text="{Binding AlbumTitle, Mode=OneWay}"
                          Height="30" Margin="0,4" Padding="2,0"/>
             </StackPanel>
@@ -56,7 +56,7 @@
             </Border>
 
             <StackPanel Margin="8,0,0,2" Grid.Column="1">
-                <TextBlock Text="To" FontSize="16" Foreground="{StaticResource TextBrush}"/>
+                <TextBlock Text="To" FontSize="16" Foreground="{DynamicResource TextBrush}"/>
                 <ComboBox x:Name="AlbumBox" DisplayMemberPath="Title" SelectionChanged="AlbumBox_SelectionChanged"
                         Style="{StaticResource RoundedComboBox}" Grid.Column="1" Height="30"  Margin="0,4"/>
             </StackPanel>
