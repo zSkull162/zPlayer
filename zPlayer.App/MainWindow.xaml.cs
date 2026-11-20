@@ -212,7 +212,7 @@ namespace zPlayer.App
             };
             ShuffleQueueButton.IsEnabled = player.QueueCount > 1;
             ShuffleQueueButton.Opacity = ShuffleQueueButton.IsEnabled ? 1 : 0.25;
-            ToggleShuffleButton.Opacity = player.AutoReshuffle ? 1 : 0.7;
+            ToggleShuffleButton.Opacity = player.AutoReshuffle ? 1 : 0.4;
 
             PlayPauseImage.Source = player.IsPlaying ? pauseIcon : playIcon;
             SetTimelineRendering(player.IsPlaying);
@@ -255,12 +255,8 @@ namespace zPlayer.App
         }
 
         private static string FormatPlaybackTime(TimeSpan time) {
-            if (time < TimeSpan.Zero)
-                time = TimeSpan.Zero;
-
-            return time.TotalHours >= 1
-                ? $"{(int)time.TotalHours}:{time.Minutes:00}:{time.Seconds:00}"
-                : $"{(int)time.TotalMinutes:00}:{time.Seconds:00}";
+            if (time < TimeSpan.Zero) time = TimeSpan.Zero;
+            return $"{(int)time.TotalMinutes}:{time.Seconds:00}";
         }
 
         private void SetTimelineRendering(bool enabled) {
@@ -1189,7 +1185,7 @@ namespace zPlayer.App
 
         private void ToggleShuffle_Click(object sender, RoutedEventArgs e) {
             player.ToggleAutoReshuffle();
-            ToggleShuffleButton.Opacity = player.AutoReshuffle ? 1 : 0.7;
+            ToggleShuffleButton.Opacity = player.AutoReshuffle ? 1 : 0.4;
         }
 
         private void BackButton_Click(object sender, RoutedEventArgs e) {
