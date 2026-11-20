@@ -37,11 +37,13 @@ namespace zPlayer.App.Themes
                 settings.Text
             ];
 
-            Color[] colors = values.Select(value => (Color)ColorConverter.ConvertFromString(value)).ToArray();
+            Color[] colors = values.Select(GetColor).ToArray();
             for (int i = 0; i < ColorKeys.Length; i++) {
                 SetColor(ColorKeys[i], colors[i]);
             }
         }
+
+        public static Color GetColor(string hex) => (Color)ColorConverter.ConvertFromString(hex);
 
         public static void SetColor(string colorKey, Color color) {
             int index = Array.IndexOf(ColorKeys, colorKey);

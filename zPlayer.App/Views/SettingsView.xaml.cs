@@ -127,6 +127,55 @@ namespace zPlayer.App.Views
         }
         #endregion
 
+        private void ResetColor_Click(object sender, RoutedEventArgs e) {
+            if (sender is not System.Windows.Controls.Button button) return;
+            ThemeSettings defaultTheme = new();
+            Color newColor;
+            string colorKey;
+
+            switch (button.Tag) {
+                default: return;
+                case "ResetBackground":
+                    colorKey = "BackgroundColor";
+                    newColor = ThemeManager.GetColor(defaultTheme.Background);
+                    BackgroundPicker.SelectedColor = newColor;
+                    break;
+                case "ResetSurface":
+                    colorKey = "SurfaceColor";
+                    newColor = ThemeManager.GetColor(defaultTheme.Surface);
+                    SurfacePicker.SelectedColor = newColor;
+                    break;
+                case "ResetBorder":
+                    colorKey = "BorderColor";
+                    newColor = ThemeManager.GetColor(defaultTheme.Border);
+                    BorderPicker.SelectedColor = newColor;
+                    break;
+                case "ResetHighlight":
+                    colorKey = "HighlightColor";
+                    newColor = ThemeManager.GetColor(defaultTheme.Highlight);
+                    BorderPicker.SelectedColor = newColor;
+                    break;
+                case "ResetSelected":
+                    colorKey = "SelectedColor";
+                    newColor = ThemeManager.GetColor(defaultTheme.Selected);
+                    SelectedPicker.SelectedColor = newColor;
+                    break;
+                case "ResetSelectedSecondary":
+                    colorKey = "SelectedColorSecondary";
+                    newColor = ThemeManager.GetColor(defaultTheme.SelectedSecondary);
+                    SelectedPickerSecondary.SelectedColor = newColor;
+                    break;
+                case "ResetText":
+                    colorKey = "TextColor";
+                    newColor = ThemeManager.GetColor(defaultTheme.Text);
+                    TextPicker.SelectedColor = newColor;
+                    break;
+            }
+            ThemeManager.SetColor(colorKey, newColor);
+            theme = ThemeManager.Capture();
+            SaveSettings();
+        }
+
         private void ThemeColor_Changed(object sender, RoutedEventArgs e) {
             if (loadingSettings || sender is not PortableColorPicker picker || picker.Tag is not string key) return;
 

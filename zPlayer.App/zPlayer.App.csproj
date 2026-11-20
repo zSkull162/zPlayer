@@ -81,6 +81,8 @@
     <None Remove="Assets\Icons\Speaker.png" />
     <None Remove="Assets\Icons\Speaker_32x.png" />
     <None Remove="Assets\Icons\TestCover.png" />
+    <None Remove="Assets\Icons\Undo.png" />
+    <None Remove="Assets\Icons\Undo_32x.png" />
     <None Remove="Assets\zPlayer.ico" />
     <None Remove="Assets\zPlayerImage.png" />
   </ItemGroup>
@@ -174,6 +176,8 @@
     <Resource Include="Assets\Icons\Speaker.png" />
     <Resource Include="Assets\Icons\Speaker_32x.png" />
     <Resource Include="Assets\Icons\TestCover.png" />
+    <Resource Include="Assets\Icons\Undo.png" />
+    <Resource Include="Assets\Icons\Undo_32x.png" />
     <Resource Include="Assets\Icons\zPlayer.ico" />
     <Resource Include="Assets\zPlayerImage.png" />
   </ItemGroup>

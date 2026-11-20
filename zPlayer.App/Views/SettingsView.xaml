@@ -8,18 +8,39 @@
              mc:Ignorable="d"
              d:DesignHeight="620" d:DesignWidth="1030">
     <UserControl.Resources>
-        <Style x:Key="ToggleLabel" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
-            <Setter Property="HorizontalAlignment" Value="Left"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="Margin" Value="6,0,0,0"/>
-            <Setter Property="Padding" Value="4,8"/>
-            <Setter Property="FontSize" Value="15"/>
-        </Style>
-        <Style BasedOn="{StaticResource RoundedCheckbox}" x:Key="SettingsCheckbox" TargetType="CheckBox">
-            <Setter Property="HorizontalAlignment" Value="Right"/>
-            <Setter Property="Padding" Value="4,4,0,4"/>
-        </Style>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/ColorPicker;component/Styles/DefaultColorPickerStyle.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <Style x:Key="ToggleLabel" TargetType="TextBlock">
+                <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+                <Setter Property="HorizontalAlignment" Value="Left"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="Margin" Value="6,0,0,0"/>
+                <Setter Property="Padding" Value="4,8"/>
+                <Setter Property="FontSize" Value="15"/>
+            </Style>
+            <Style BasedOn="{StaticResource RoundedCheckbox}" x:Key="SettingsCheckbox" TargetType="CheckBox">
+                <Setter Property="HorizontalAlignment" Value="Right"/>
+                <Setter Property="Padding" Value="4,4,0,4"/>
+            </Style>
+            <Style x:Key="ColorPickerIcon" TargetType="Image">
+                <Setter Property="Source" Value="/Assets/Icons/Edit_32x.png"/>
+                <Setter Property="Width" Value="15"/>
+                <Setter Property="Margin" Value="6"/>
+                <Setter Property="HorizontalAlignment" Value="Left"/>
+            </Style>
+            <Style x:Key="ColorPicker" BasedOn="{StaticResource DefaultColorPickerStyle}" TargetType="colorpicker:PortableColorPicker">
+                <Setter Property="ShowAlpha" Value="False"/>
+            </Style>
+            <Style x:Key="ColorPickerBorder" TargetType="Border">
+                <Setter Property="Margin" Value="0,4,4,4"/>
+                <Setter Property="MinWidth" Value="86"/>
+                <Setter Property="Height" Value="24"/>
+                <Setter Property="CornerRadius" Value="6"/>
+                <Setter Property="ClipToBounds" Value="True"/>
+            </Style>
+        </ResourceDictionary>
     </UserControl.Resources>
     
     <Grid>
@@ -169,54 +190,79 @@
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="46"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Style="{StaticResource ToggleLabel}" Text="Background - Primary"/>
                                 <Rectangle Grid.Column="1" Margin="8,0" Height="4" Fill="{StaticResource BackgroundBrush}" RadiusX="2" RadiusY="2"/>
-                                <Border Grid.Column="2" Margin="0,4,4,4" MinWidth="86" CornerRadius="3" ClipToBounds="True">
-                                    <colorpicker:PortableColorPicker x:Name="BackgroundPicker" Tag="BackgroundColor" ShowAlpha="False" ColorChanged="ThemeColor_Changed"/>
+                                <Border Grid.Column="2" Style="{StaticResource ColorPickerBorder}">
+                                    <colorpicker:PortableColorPicker x:Name="BackgroundPicker" Tag="BackgroundColor" Style="{StaticResource ColorPicker}" ColorChanged="ThemeColor_Changed"/>
                                 </Border>
+                                <Image Grid.Column="2" Style="{StaticResource ColorPickerIcon}"/>
+                                <Button Grid.Column="3" Tag="ResetBackground" Click="ResetColor_Click" Height="36"
+                                              FontSize="14" Style="{StaticResource RoundedButton}" Margin="4">
+                                    <Image Source="/Assets/Icons/Undo_32x.png" Margin="4.5"/>
+                                </Button>
                             </Grid>
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="46"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Style="{StaticResource ToggleLabel}" Text="Background - Secondary"/>
                                 <Rectangle Grid.Column="1" Margin="8,0" Height="4" Fill="{StaticResource SurfaceBrush}" RadiusX="2" RadiusY="2"/>
-                                <Border Grid.Column="2" Margin="0,4,4,4" MinWidth="86" CornerRadius="3" ClipToBounds="True">
-                                    <colorpicker:PortableColorPicker x:Name="SurfacePicker" Tag="SurfaceColor" ShowAlpha="False" ColorChanged="ThemeColor_Changed"/>
+                                <Border Grid.Column="2" Style="{StaticResource ColorPickerBorder}">
+                                    <colorpicker:PortableColorPicker x:Name="SurfacePicker" Tag="SurfaceColor" Style="{StaticResource ColorPicker}" ColorChanged="ThemeColor_Changed"/>
                                 </Border>
+                                <Image Grid.Column="2" Style="{StaticResource ColorPickerIcon}"/>
+                                <Button Grid.Column="3" Tag="ResetSurface" Click="ResetColor_Click" Height="36"
+                                              FontSize="14" Style="{StaticResource RoundedButton}" Margin="4">
+                                    <Image Source="/Assets/Icons/Undo_32x.png" Margin="4.5"/>
+                                </Button>
                             </Grid>
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="46"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Style="{StaticResource ToggleLabel}" Text="Border"/>
                                 <Rectangle Grid.Column="1" Margin="8,0" Height="4" Fill="{StaticResource BorderBrush}" RadiusX="2" RadiusY="2"/>
-                                <Border Grid.Column="2" Margin="0,4,4,4" MinWidth="86" CornerRadius="3" ClipToBounds="True">
-                                    <colorpicker:PortableColorPicker x:Name="BorderPicker" Tag="BorderColor" ShowAlpha="False" ColorChanged="ThemeColor_Changed"/>
+                                <Border Grid.Column="2" Style="{StaticResource ColorPickerBorder}">
+                                    <colorpicker:PortableColorPicker x:Name="BorderPicker" Tag="BorderColor" Style="{StaticResource ColorPicker}" ColorChanged="ThemeColor_Changed"/>
                                 </Border>
+                                <Image Grid.Column="2" Style="{StaticResource ColorPickerIcon}"/>
+                                <Button Grid.Column="3" Tag="ResetBorder" Click="ResetColor_Click" Height="36"
+                                              FontSize="14" Style="{StaticResource RoundedButton}" Margin="4">
+                                    <Image Source="/Assets/Icons/Undo_32x.png" Margin="4.5"/>
+                                </Button>
                             </Grid>
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="46"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Style="{StaticResource ToggleLabel}" Text="Highlight"/>
                                 <Rectangle Grid.Column="1" Margin="8,0" Height="4" Fill="{StaticResource HighlightBrush}" RadiusX="2" RadiusY="2"/>
-                                <Border Grid.Column="2" Margin="0,4,4,4" MinWidth="86" CornerRadius="3" ClipToBounds="True">
-                                    <colorpicker:PortableColorPicker x:Name="HighlightPicker" Tag="HighlightColor" ShowAlpha="False" ColorChanged="ThemeColor_Changed"/>
+                                <Border Grid.Column="2" Style="{StaticResource ColorPickerBorder}">
+                                    <colorpicker:PortableColorPicker x:Name="HighlightPicker" Tag="HighlightColor" Style="{StaticResource ColorPicker}" ColorChanged="ThemeColor_Changed"/>
                                 </Border>
+                                <Image Grid.Column="2" Style="{StaticResource ColorPickerIcon}"/>
+                                <Button Grid.Column="3" Tag="ResetHighlight" Click="ResetColor_Click" Height="36"
+                                              FontSize="14" Style="{StaticResource RoundedButton}" Margin="4">
+                                    <Image Source="/Assets/Icons/Undo_32x.png" Margin="4.5"/>
+                                </Button>
                             </Grid>
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="46"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Style="{StaticResource ToggleLabel}" Text="Accent - Primary"/>
                                 <Rectangle Grid.Column="1" Margin="8,0" Height="4" RadiusX="2" RadiusY="2">
@@ -227,15 +273,21 @@
                                         </LinearGradientBrush>
                                     </Rectangle.Fill>
                                 </Rectangle>
-                                <Border Grid.Column="2" Margin="0,4,4,4" MinWidth="86" CornerRadius="3" ClipToBounds="True">
-                                    <colorpicker:PortableColorPicker x:Name="SelectedPicker" Tag="SelectedColor" ShowAlpha="False" ColorChanged="ThemeColor_Changed"/>
+                                <Border Grid.Column="2" Style="{StaticResource ColorPickerBorder}">
+                                    <colorpicker:PortableColorPicker x:Name="SelectedPicker" Tag="SelectedColor" Style="{StaticResource ColorPicker}" ColorChanged="ThemeColor_Changed"/>
                                 </Border>
+                                <Image Grid.Column="2" Style="{StaticResource ColorPickerIcon}"/>
+                                <Button Grid.Column="3" Tag="ResetSelected" Click="ResetColor_Click" Height="36"
+                                              FontSize="14" Style="{StaticResource RoundedButton}" Margin="4">
+                                    <Image Source="/Assets/Icons/Undo_32x.png" Margin="4.5"/>
+                                </Button>
                             </Grid>
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="46"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Style="{StaticResource ToggleLabel}" Text="Accent - Secondary"/>
                                 <Rectangle Grid.Column="1" Margin="8,0" Height="4" RadiusX="2" RadiusY="2">
@@ -246,21 +298,32 @@
                                         </LinearGradientBrush>
                                     </Rectangle.Fill>
                                 </Rectangle>
-                                <Border Grid.Column="2" Margin="0,4,4,4" MinWidth="86" CornerRadius="3" ClipToBounds="True">
-                                    <colorpicker:PortableColorPicker x:Name="SelectedPickerSecondary" Tag="SelectedColorSecondary" ShowAlpha="False" ColorChanged="ThemeColor_Changed"/>
+                                <Border Grid.Column="2" Style="{StaticResource ColorPickerBorder}">
+                                    <colorpicker:PortableColorPicker x:Name="SelectedPickerSecondary" Tag="SelectedColorSecondary" Style="{StaticResource ColorPicker}" ColorChanged="ThemeColor_Changed"/>
                                 </Border>
+                                <Image Grid.Column="2" Style="{StaticResource ColorPickerIcon}"/>
+                                <Button Grid.Column="3" Tag="ResetSelectedSecondary" Click="ResetColor_Click" Height="36"
+                                              FontSize="14" Style="{StaticResource RoundedButton}" Margin="4">
+                                    <Image Source="/Assets/Icons/Undo_32x.png" Margin="4.5"/>
+                                </Button>
                             </Grid>
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="46"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Style="{StaticResource ToggleLabel}" Text="Text"/>
                                 <Rectangle Grid.Column="1" Margin="8,0" Height="4" Fill="{StaticResource TextBrush}" RadiusX="2" RadiusY="2"/>
-                                <Border Grid.Column="2" Margin="0,4,4,4" MinWidth="86" CornerRadius="3" ClipToBounds="True">
-                                    <colorpicker:PortableColorPicker x:Name="TextPicker" Tag="TextColor" ShowAlpha="False" ColorChanged="ThemeColor_Changed"/>
+                                <Border Grid.Column="2" Style="{StaticResource ColorPickerBorder}">
+                                    <colorpicker:PortableColorPicker x:Name="TextPicker" Tag="TextColor" Style="{StaticResource ColorPicker}" ColorChanged="ThemeColor_Changed"/>
                                 </Border>
+                                <Image Grid.Column="2" Style="{StaticResource ColorPickerIcon}"/>
+                                <Button Grid.Column="3" Tag="ResetText" Click="ResetColor_Click" Height="36"
+                                              FontSize="14" Style="{StaticResource RoundedButton}" Margin="4">
+                                    <Image Source="/Assets/Icons/Undo_32x.png" Margin="4.5"/>
+                                </Button>
                             </Grid>
                         </StackPanel>
                     </Border>
