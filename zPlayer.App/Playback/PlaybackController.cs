@@ -1,7 +1,8 @@
-using System.Diagnostics;
+using NAudio.CoreAudioApi;
 using NAudio.Vorbis;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
+using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using zPlayer.Core;
@@ -23,7 +24,9 @@ namespace zPlayer.App.Playback
         public int CurrentQueueIndex => orderPos;
 
         private WaveStream? reader;
-        private WaveOut? output;
+        private WasapiPlayer? output;
+        private MMDevice? outputDevice;
+        private string? outputDeviceId;
 
         private VolumeSampleProvider? volumeProvider;
         private double volume = 0.5;
@@ -39,6 +42,7 @@ namespace zPlayer.App.Playback
         public LoopMode Loop { get; private set; } = LoopMode.Off;
         public bool AutoReshuffle { get; private set; }
         public bool IsPlaying => output?.PlaybackState == PlaybackState.Playing;
+        public bool AllowDuplicateSongs { get; set; }
 
         private readonly Stopwatch playbackClock = new();
         private TimeSpan playbackOffset;
@@ -93,11 +97,17 @@ namespace zPlayer.App.Playback
             }
         }
 
-        public void AddToQueue(IEnumerable<Song> songs) {
-            HashSet<Guid> existingIds = queue.Select(song => song.Id).ToHashSet();
-            List<Song> added = songs.Where(song => existingIds.Add(song.Id)).ToList();
+        private List<Song> PrepareQueueSongs(IEnumerable<Song> songs, bool replacingQueue = false) {
+            if (AllowDuplicateSongs) return songs.ToList();
 
+            HashSet<Guid> existingIds = replacingQueue ? [] : queue.Select(song => song.Id).ToHashSet();
+            return songs.Where(song => existingIds.Add(song.Id)).ToList();
+        }
+
+        public void AddToQueue(IEnumerable<Song> songs) {
+            List<Song> added = PrepareQueueSongs(songs);
             if (added.Count == 0) return;
+
             foreach (Song song in added) {
                 int index = queue.Count;
                 queue.Add(song);
@@ -107,10 +117,9 @@ namespace zPlayer.App.Playback
         }
 
         public void InsertNext(IEnumerable<Song> songs) {
-            HashSet<Guid> existingIds = queue.Select(song => song.Id).ToHashSet();
-            List<Song> added = songs.Where(song => existingIds.Add(song.Id)).ToList();
-
+            List<Song> added = PrepareQueueSongs(songs);
             if (added.Count == 0) return;
+
             int insertPosition = orderPos + 1;
 
             foreach (Song song in added) {
@@ -135,7 +144,7 @@ namespace zPlayer.App.Playback
         }
 
         public void PlayQueue(IEnumerable<Song> songs, Song? startingSong = null) {
-            List<Song> newQueue = songs.DistinctBy(song => song.Id).ToList();
+            List<Song> newQueue = PrepareQueueSongs(songs, true);
 
             StopAudio();
             queue.Clear();
@@ -278,6 +287,16 @@ namespace zPlayer.App.Playback
         #endregion
 
         private void StartCurrentSong(bool startPlaying = true) {
+            try {
+                OpenCurrentSong(startPlaying, TimeSpan.Zero);
+            }
+            catch (Exception ex) {
+                NotifyStateChanged();
+                PlaybackError?.Invoke($"Could not play \"{GetCurrentSong()?.Title}\":\n{ex.Message}");
+            }
+        }
+
+        private void OpenCurrentSong(bool startPlaying, TimeSpan position) {
             StopAudio();
 
             Song? song = GetCurrentSong();
@@ -285,56 +304,97 @@ namespace zPlayer.App.Playback
                 NotifyStateChanged();
                 return;
             }
+
             try {
                 reader = CreateReader(song.FilePath);
-                output = new();
+                position = TimeSpan.FromTicks(Math.Clamp(position.Ticks, 0, reader.TotalTime.Ticks));
+
+                reader.CurrentTime = position;
+                playbackOffset = reader.CurrentTime;
+
+                outputDevice = AudioOutputDevices.Resolve(outputDeviceId);
+                output = new WasapiPlayerBuilder()
+                    .WithDevice(outputDevice)
+                    .WithSharedMode()
+                    .WithEventSync()
+                    .WithLatency(100)
+                    .WithMmcssThreadPriority("Playback")
+                    .Build();
 
                 volumeProvider = new(reader.ToSampleProvider()) {
                     Volume = (float)volume
                 };
-    
+
                 output.Init(volumeProvider.ToWaveProvider());
                 output.PlaybackStopped += Output_PlaybackStopped;
+
                 if (startPlaying) {
                     output.Play();
                     playbackClock.Start();
                 }
-                NotifyStateChanged();
             }
-            catch (Exception ex) {
+            catch {
                 StopAudio();
-                NotifyStateChanged();
-                PlaybackError?.Invoke($"Could not play \"{song.Title}\":\n{ex.Message}");
+                throw;
+            }
+            NotifyStateChanged();
+        }
+
+        public void SetOutputDevice(string? deviceId) {
+            if (outputDeviceId == deviceId) return;
+
+            string? previousDeviceId = outputDeviceId;
+            TimeSpan position = Position;
+            bool wasPlaying = IsPlaying;
+            bool hadAudio = reader != null;
+
+            outputDeviceId = deviceId;
+            if (!hadAudio) return;
+
+            try {
+                OpenCurrentSong(wasPlaying, position);
+            }
+            catch (Exception changeError) {
+                outputDeviceId = previousDeviceId;
+
+                try {
+                    OpenCurrentSong(wasPlaying, position);
+                }
+                catch (Exception restoreError) {
+                    NotifyStateChanged();
+                    throw new AggregateException("Could not change the audio output or restore the previous output.", changeError, restoreError);
+                }
+                throw;
             }
         }
 
         private void StopAudio() {
             playbackClock.Reset();
             playbackOffset = TimeSpan.Zero;
-            WaveOut? previousOutput = output;
+
+            WasapiPlayer? previousOutput = output;
             WaveStream? previousReader = reader;
+            MMDevice? previousDevice = outputDevice;
             output = null;
             reader = null;
+            outputDevice = null;
             volumeProvider = null;
 
-            if (previousOutput == null) {
-                previousReader?.Dispose();
-                return;
+            try {
+                if (previousOutput != null) {
+                    previousOutput.PlaybackStopped -= Output_PlaybackStopped;
+                    try {
+                        previousOutput.Stop();
+                    }
+                    finally {
+                        previousOutput.Dispose();
+                    }
+                }
             }
-            previousOutput.PlaybackStopped -= Output_PlaybackStopped;
-            if (previousOutput.PlaybackState == PlaybackState.Stopped) {
-                previousOutput.Dispose();
+            finally {
                 previousReader?.Dispose();
-                return;
+                previousDevice?.Dispose();
             }
-            EventHandler<StoppedEventArgs>? cleanup = null;
-            cleanup = (_, _) => {
-                previousOutput.PlaybackStopped -= cleanup;
-                previousOutput.Dispose();
-                previousReader?.Dispose();
-            };
-            previousOutput.PlaybackStopped += cleanup;
-            previousOutput.Stop();
         }
 
         private void Output_PlaybackStopped(object? sender, StoppedEventArgs e) {

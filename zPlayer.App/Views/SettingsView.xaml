@@ -29,6 +29,7 @@
                 <Setter Property="Width" Value="15"/>
                 <Setter Property="Margin" Value="6"/>
                 <Setter Property="HorizontalAlignment" Value="Left"/>
+                <Setter Property="IsHitTestVisible" Value="False"/>
             </Style>
             <Style x:Key="ColorPicker" BasedOn="{StaticResource DefaultColorPickerStyle}" TargetType="colorpicker:PortableColorPicker">
                 <Setter Property="ShowAlpha" Value="False"/>
@@ -64,16 +65,19 @@
                         <Grid>
                             <TextBlock Style="{StaticResource ToggleLabel}" Text="Audio output"/>
                             <ComboBox x:Name="AudioOutputBox" Style="{StaticResource RoundedComboBox}"
-                                                  HorizontalAlignment="Right" Margin="8" SelectionChanged="SettingComboBox_SelectionChanged"/>
+                                                  MaxWidth="200" Margin="8" DisplayMemberPath="Name"
+                                                  HorizontalAlignment="Right" SelectionChanged="SettingComboBox_SelectionChanged"/>
                         </Grid>
                     </Border>
-
+                    <!-- Maybe in zPlayer v2
                     <Border Style="{StaticResource Panel}" CornerRadius="3" Margin="0,6">
                         <Grid>
-                            <TextBlock Style="{StaticResource ToggleLabel}" Text="Audio Normalization"/>
-                            <CheckBox x:Name="AudioNormalizationToggle" Style="{StaticResource SettingsCheckbox}" Click="SettingToggle_Click"/>
+                            <TextBlock Style="{StaticResource ToggleLabel}" Text="Audio Normalization"
+                                                 ToolTip="Corrects the volume of the audio to the level of the volume slider, for more consistent song volume"/>
+                            <CheckBox x:Name="AudioNormalizationToggle" Style="{StaticResource SettingsCheckbox}" Click="SettingToggle_Click"
+                                                 ToolTip="Corrects the volume of the audio to the level of the volume slider, for more consistent song volume"/>
                         </Grid>
-                    </Border>
+                    </Border> -->
 
                     <Border Style="{StaticResource Panel}" CornerRadius="3" Margin="0,6">
                         <Grid>
@@ -89,7 +93,12 @@
                                 <RowDefinition Height="*"/>
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
-                            <TextBlock Style="{StaticResource ToggleLabel}" Text="Discord Rich Presence"/>
+                            <StackPanel Orientation="Horizontal">
+                                <Button Style="{StaticResource IconButton}" Opacity="0.5" Width="20" Margin="4,0,0,0" Click="ToggleRpcPreview_Click">
+                                    <Image x:Name="ToggleRpcPreviewIcon" Source="/Assets/Icons/ArrowForward_32x.png" Stretch="Uniform" Margin="4"/>
+                                </Button>
+                                <TextBlock Style="{StaticResource ToggleLabel}" Text="Discord Rich Presence" Margin="0"/>
+                            </StackPanel>
                             <CheckBox x:Name="RpcToggle" Style="{StaticResource SettingsCheckbox}" Click="SettingToggle_Click"/>
 
                             <StackPanel x:Name="RpcOptions" Grid.Row="1" Orientation="Vertical" Margin="12,0,0,0" Visibility="Collapsed">

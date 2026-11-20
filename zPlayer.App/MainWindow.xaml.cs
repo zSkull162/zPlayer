@@ -66,10 +66,11 @@ namespace zPlayer.App
             CoverArt.Loader = new ArtworkLoader(database);
             InitializeComponent();
             InitDatabase();
+
             rpcSettings = database.LoadRpcSettings();
             appSettings = database.LoadAppSettings();
-            savedTheme = appSettings.Theme;
-            ThemeManager.Apply(appSettings.Theme ?? new ThemeSettings());
+            LoadSettings();
+
             mediaKeys = new();
             InitMediaKeys();
             InitPlaybackUI();
@@ -96,6 +97,14 @@ namespace zPlayer.App
                 library.AddMix(mix);
             }
             library.RefreshMixes();
+        }
+
+        private void LoadSettings() {
+            player.SetOutputDevice(appSettings.AudioOutputDeviceId);
+            player.AllowDuplicateSongs = appSettings.AllowDuplicatePlaybackSongs;
+
+            savedTheme = appSettings.Theme;
+            ThemeManager.Apply(appSettings.Theme ?? new ThemeSettings());
         }
 
         private void InitMediaKeys() {
@@ -793,9 +802,17 @@ namespace zPlayer.App
                     AppSettings newOptions = newAppSettings with { Theme = null };
 
                     if (previousOptions != newOptions) {
-                        database.SaveAppSettings(newAppSettings with { Theme = savedTheme });
+                        player.SetOutputDevice(newAppSettings.AudioOutputDeviceId);
+                        try {
+                            database.SaveAppSettings(newAppSettings with { Theme = savedTheme });
+                        }
+                        catch {
+                            player.SetOutputDevice(appSettings.AudioOutputDeviceId);
+                            throw;
+                        }
                     }
                     appSettings = newAppSettings;
+                    player.AllowDuplicateSongs = appSettings.AllowDuplicatePlaybackSongs;
                 }
             }
             catch (Exception ex) {

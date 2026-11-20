@@ -19,7 +19,8 @@ namespace zPlayer.Core
         bool ShowAlbumDeleteConfirmation = true,
         bool ShowMixDeleteConfirmation = true,
         bool AllowDuplicatePlaybackSongs = false,
-        ThemeSettings? Theme = null
+        ThemeSettings? Theme = null,
+        string? AudioOutputDeviceId = null
     );
 
     public sealed record ThemeSettings(

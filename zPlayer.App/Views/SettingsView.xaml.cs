@@ -2,7 +2,7 @@
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 using System.Windows.Media;
-using DiscordRPC;
+using zPlayer.App.Playback;
 using ColorPicker;
 using zPlayer.Core;
 using zPlayer.App.Themes;
@@ -13,12 +13,15 @@ namespace zPlayer.App.Views
     {
         private readonly BitmapImage playIcon = new(new Uri("pack://application:,,,/Assets/Icons/Play_32x.png"));
         private readonly BitmapImage pauseIcon = new(new Uri("pack://application:,,,/Assets/Icons/Pause_32x.png"));
+        private readonly BitmapImage arrowForward = new(new Uri("pack://application:,,,/Assets/Icons/ArrowForward_32x.png"));
+        private readonly BitmapImage arrowDown = new(new Uri("pack://application:,,,/Assets/Icons/ArrowDown_32x.png"));
         private ThemeSettings theme = new();
 
         public event Action<zPlayerRpcSettings, AppSettings>? SettingsChanged;
         public event Action<ThemeSettings>? ThemeSaveRequested;
-        private bool loadingSettings;
+        private bool loadingSettings = true;
         private bool previewIsPaused;
+        private bool previewIsOpen;
 
         public SettingsView(zPlayerRpcSettings rpcSettings, AppSettings appSettings) {
             InitializeComponent();
@@ -37,6 +40,8 @@ namespace zPlayer.App.Views
                 RpcDisplayPausedToggle.IsChecked = rpcSettings.DisplayPausedState;
                 RpcDisplayAlbumToggle.IsChecked = rpcSettings.DisplayAlbumName;
                 RpcStatusBox.SelectedIndex = rpcSettings.StatusType;
+
+                LoadAudioOutputs(appSettings.AudioOutputDeviceId);
 
                 ImportSummaryToggle.IsChecked = appSettings.ShowImportSummary;
                 SongDeleteConfirmationToggle.IsChecked = appSettings.ShowSongDeleteConfirmation;
@@ -77,7 +82,8 @@ namespace zPlayer.App.Views
                     ShowAlbumDeleteConfirmation: AlbumDeleteConfirmationToggle.IsChecked == true,
                     ShowMixDeleteConfirmation: MixDeleteConfirmationToggle.IsChecked == true,
                     AllowDuplicatePlaybackSongs: DuplicateSongToggle.IsChecked == true,
-                    Theme: theme
+                    Theme: theme,
+                    AudioOutputDeviceId: (AudioOutputBox.SelectedItem as AudioOutputDevice)?.Id
                 )
             );
         }
@@ -85,11 +91,23 @@ namespace zPlayer.App.Views
         private void SettingComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) => SaveSettings();
         private void SettingToggle_Click(object sender, RoutedEventArgs e) => SaveSettings();
 
+        private void LoadAudioOutputs(string? selectedDeviceId) {
+            List<AudioOutputDevice> devices = AudioOutputDevices.GetDevices();
+            AudioOutputDevice? selected = devices.FirstOrDefault(device => device.Id == selectedDeviceId);
+
+            if (selected == null) {
+                selected = new(selectedDeviceId, "(Unavailable)");
+                devices.Add(selected);
+            }
+            AudioOutputBox.ItemsSource = devices;
+            AudioOutputBox.SelectedItem = selected;
+        }
+
         #region Discord RPC
         private void UpdateRpcPreview() {
             if (PreviewUserArtistText == null) return;
 
-            bool enabled = RpcToggle.IsChecked == true;
+            bool enabled = RpcToggle.IsChecked == true && previewIsOpen;
             bool displayAlbum = RpcDisplayAlbumToggle.IsChecked == true;
 
             RpcOptions.Visibility = enabled ? Visibility.Visible : Visibility.Collapsed;
@@ -125,8 +143,15 @@ namespace zPlayer.App.Views
             previewIsPaused = !previewIsPaused;
             UpdateRpcPausedState();
         }
+
+        private void ToggleRpcPreview_Click(object sender, RoutedEventArgs e) {
+            previewIsOpen = !previewIsOpen;
+            ToggleRpcPreviewIcon.Source = previewIsOpen ? arrowDown : arrowForward;
+            UpdateRpcPreview();
+        }
         #endregion
 
+        #region Appearance
         private void ResetColor_Click(object sender, RoutedEventArgs e) {
             if (sender is not System.Windows.Controls.Button button) return;
             ThemeSettings defaultTheme = new();
@@ -153,7 +178,7 @@ namespace zPlayer.App.Views
                 case "ResetHighlight":
                     colorKey = "HighlightColor";
                     newColor = ThemeManager.GetColor(defaultTheme.Highlight);
-                    BorderPicker.SelectedColor = newColor;
+                    HighlightPicker.SelectedColor = newColor;
                     break;
                 case "ResetSelected":
                     colorKey = "SelectedColor";
@@ -183,5 +208,6 @@ namespace zPlayer.App.Views
             theme = ThemeManager.Capture();
             SaveSettings();
         }
+        #endregion
     }
 }
