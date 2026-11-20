@@ -163,14 +163,17 @@
     <Style TargetType="Image" x:Key="LoopIcon">
         <Setter Property="Source" Value="/Assets/Icons/Loop_32x.png"/>
         <Setter Property="Opacity" Value="0.4"/>
+        <Setter Property="ToolTip" Value="Loop - Change the loop mode"/>
         <Style.Triggers>
             <DataTrigger Binding="{Binding LoopMode}" Value="One">
                 <Setter Property="Source" Value="/Assets/Icons/LoopOne_32x.png"/>
                 <Setter Property="Opacity" Value="1"/>
+                <Setter Property="ToolTip" Value="Loop One - Loop the current track"/>
             </DataTrigger>
             <DataTrigger Binding="{Binding LoopMode}" Value="All">
                 <Setter Property="Source" Value="/Assets/Icons/LoopAll_32x.png"/>
                 <Setter Property="Opacity" Value="1"/>
+                <Setter Property="ToolTip" Value="Loop All - Loop the playback queue when it reaches the end"/>
             </DataTrigger>
         </Style.Triggers>
     </Style>
