@@ -203,8 +203,8 @@ namespace zPlayer.App
                 updatingQueueSelection = false;
             }
 
-            if ((queueChanged || currentChanged) && QueueList.SelectedItem != null) {
-                QueueList.ScrollIntoView(QueueList.SelectedItem);
+            if ((queueChanged || currentChanged) && QueueList.SelectedIndex >= 0) {
+                ScrollQueueToCurrentSong();
             }
 
             LoopButtonImage.DataContext = new {
@@ -217,6 +217,41 @@ namespace zPlayer.App
             PlayPauseImage.Source = player.IsPlaying ? pauseIcon : playIcon;
             SetTimelineRendering(player.IsPlaying);
             UpdateTimeline();
+        }
+
+        private void ScrollQueueToCurrentSong() {
+            Dispatcher.InvokeAsync(() => {
+                if (!QueueList.IsVisible || QueueList.SelectedIndex < 0) return;
+                QueueList.UpdateLayout();
+
+                ScrollViewer? scrollViewer = FindQueueVisualChild<ScrollViewer>(QueueList);
+                VirtualizingStackPanel? panel = FindQueueVisualChild<VirtualizingStackPanel>(QueueList);
+                if (scrollViewer == null || panel == null) return;
+
+                int topIndex = Math.Max(0, QueueList.SelectedIndex - 1);
+                panel.BringIndexIntoViewPublic(topIndex);
+                QueueList.UpdateLayout();
+
+                if (QueueList.ItemContainerGenerator.ContainerFromIndex(topIndex) is not ListBoxItem topItem) return;
+
+                ScrollContentPresenter? viewport = FindQueueVisualChild<ScrollContentPresenter>(scrollViewer);
+                if (viewport == null) return;
+
+                double rowTop = topItem.TransformToAncestor(viewport).Transform(new Point(0, 0)).Y;
+                scrollViewer.ScrollToVerticalOffset(Math.Max(0, scrollViewer.VerticalOffset + rowTop));
+
+            }, DispatcherPriority.Loaded);
+        }
+
+        private static T? FindQueueVisualChild<T>(DependencyObject parent) where T : DependencyObject {
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++) {
+                DependencyObject child = VisualTreeHelper.GetChild(parent, i);
+
+                if (child is T match) return match;
+                T? descendant = FindQueueVisualChild<T>(child);
+                if (descendant != null) return descendant;
+            }
+            return null;
         }
 
         private static string FormatPlaybackTime(TimeSpan time) {
