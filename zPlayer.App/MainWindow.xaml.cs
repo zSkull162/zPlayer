@@ -105,7 +105,6 @@ namespace zPlayer.App
 
             savedTheme = appSettings.Theme;
             ThemeManager.Apply(appSettings.Theme ?? new ThemeSettings());
-            UpdateTitlebarColors(appSettings.Theme ?? new ThemeSettings());
         }
 
         private void InitMediaKeys() {
@@ -155,12 +154,19 @@ namespace zPlayer.App
         [DllImport("dwmapi.dll")]
         private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attribute, ref int value, int size);
 
+        protected override void OnSourceInitialized(EventArgs e) {
+            base.OnSourceInitialized(e);
+            UpdateTitlebarColors(appSettings.Theme ?? new ThemeSettings());
+        }
+
         public void UpdateTitlebarColors(ThemeSettings theme) {
             static int ToColorRef(Color color) {
                 return color.R | (color.G << 8) | (color.B << 16);
             }
 
             IntPtr handle = new WindowInteropHelper(this).Handle;
+            if (handle == IntPtr.Zero) return;
+
             int background = ToColorRef(ThemeManager.GetColor(theme.Border));
             int foreground = ToColorRef(ThemeManager.GetColor(theme.Text));
             DwmSetWindowAttribute(handle, 35, ref background, sizeof(int));
