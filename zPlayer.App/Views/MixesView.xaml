@@ -11,7 +11,7 @@
              d:DesignHeight="620" d:DesignWidth="1030">
     <UserControl.Resources>
         <Style TargetType="TextBlock" x:Key="MixTitle">
-            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
             <Setter Property="FontSize" Value="14"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="TextTrimming" Value="CharacterEllipsis"/>

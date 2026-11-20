@@ -53,7 +53,7 @@
                 </Grid>
             </Grid>
 
-            <Separator Height="13" Background="{StaticResource BorderBrush}"/>
+            <Separator Height="13" Background="{DynamicResource BorderBrush}"/>
             <!--Title-->
             <Grid>
                 <Grid.ColumnDefinitions>

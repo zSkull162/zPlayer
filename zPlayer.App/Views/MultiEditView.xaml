@@ -46,11 +46,11 @@
                 </Grid>
 
                 <TextBlock x:Name="CustomImageFilePathText" Text="Test/File/Path.png" Grid.Row="1" Grid.ColumnSpan="2"
-                           Foreground="{StaticResource TextBrush}" Opacity="0.5" Visibility="Collapsed"
+                           Foreground="{DynamicResource TextBrush}" Opacity="0.5" Visibility="Collapsed"
                            FontSize="10" FontStyle="Italic" HorizontalAlignment="Right"/>
             </Grid>
 
-            <Separator Height="13" Background="{StaticResource BorderBrush}"/>
+            <Separator Height="13" Background="{DynamicResource BorderBrush}"/>
 
             <!--Artist-->
             <Grid>
