@@ -105,6 +105,7 @@ namespace zPlayer.App
 
             savedTheme = appSettings.Theme;
             ThemeManager.Apply(appSettings.Theme ?? new ThemeSettings());
+            UpdateTitlebarColors(appSettings.Theme ?? new ThemeSettings());
         }
 
         private void InitMediaKeys() {
@@ -154,17 +155,14 @@ namespace zPlayer.App
         [DllImport("dwmapi.dll")]
         private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attribute, ref int value, int size);
 
-        protected override void OnSourceInitialized(EventArgs e) {
-            base.OnSourceInitialized(e);
-
+        public void UpdateTitlebarColors(ThemeSettings theme) {
             static int ToColorRef(Color color) {
                 return color.R | (color.G << 8) | (color.B << 16);
             }
 
             IntPtr handle = new WindowInteropHelper(this).Handle;
-            int background = ToColorRef(Color.FromRgb(43, 44, 59));
-            int foreground = ToColorRef(Color.FromRgb(240, 240, 240));
-
+            int background = ToColorRef(ThemeManager.GetColor(theme.Border));
+            int foreground = ToColorRef(ThemeManager.GetColor(theme.Text));
             DwmSetWindowAttribute(handle, 35, ref background, sizeof(int));
             DwmSetWindowAttribute(handle, 36, ref foreground, sizeof(int));
         }
@@ -844,6 +842,7 @@ namespace zPlayer.App
                     }
                     appSettings = newAppSettings;
                     player.AllowDuplicateSongs = appSettings.AllowDuplicatePlaybackSongs;
+                    UpdateTitlebarColors(appSettings.Theme ?? new ThemeSettings());
                 }
             }
             catch (Exception ex) {
